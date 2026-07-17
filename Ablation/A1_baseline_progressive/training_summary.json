@@ -1,0 +1,46 @@
+{
+  "experiment": "A1_baseline_progressive",
+  "variant": "baseline",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase4/weights/best.pt",
+  "duration": "9:10:55.006764",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.39152985544573005,
+      "mAP50-95": 0.222667995623871,
+      "precision": 0.5294095540445202,
+      "recall": 0.40297787395663176
+    },
+    "phase2": {
+      "mAP50": 0.448462012335498,
+      "mAP50-95": 0.25903695346545014,
+      "precision": 0.5718292189524531,
+      "recall": 0.45140598790804
+    },
+    "phase3": {
+      "mAP50": 0.4992794980290213,
+      "mAP50-95": 0.2943784834338689,
+      "precision": 0.5887526763528479,
+      "recall": 0.5029729499375741
+    },
+    "phase4": {
+      "mAP50": 0.5229067417625378,
+      "mAP50-95": 0.31155420484147545,
+      "precision": 0.611970954703083,
+      "recall": 0.5251780133688797
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase4"
+  }
+}

@@ -1,0 +1,80 @@
+# ===========================================================================
+# MEISCF-YOLO central configuration
+# Edit the paths to match your Linux GPU server, then run:  python run.py all
+# ===========================================================================
+
+# --- Paths ------------------------------------------------------------------
+paths:
+  # Pretrained YOLOv11s weights ALREADY downloaded on the GPU server.
+  # This is the file you pointed at: change it to the absolute server path.
+  pretrained: ./yolo11s.pt
+
+  # Raw VisDrone download root (containing VisDrone2019-DET-train/ etc.)
+  # If you already have a YOLO-format dataset, point this at it instead.
+  raw_dataset: ./VisDrone2019-DET
+
+  # Where the YOLO-format dataset is written (symlinked images by default).
+  yolo_dataset: ./VisDrone_YOLO
+
+  # Output roots.
+  runs_dir: ./runs/meiscf
+  ablation_dir: ./runs/ablation
+  figures_dir: ./runs/figures
+  heatmaps_dir: ./runs/heatmaps
+
+# --- Model ------------------------------------------------------------------
+model:
+  scale: s              # YOLOv11 scale letter: n/s/m/l/x  (paper uses 's')
+  nc: 10                # number of classes (VisDrone = 10)
+  frm_alpha: 0.5        # FRM residual-blend coefficient (paper default)
+
+# --- Training ---------------------------------------------------------------
+train:
+  variant: full         # baseline | meis | meis_sf | full | frm_prefusion | sf_sequential
+  phases: [1, 2, 3, 4]  # which progressive phases to run
+  workers: 8
+  device: null          # null -> auto (cuda if available); or "0", "0,1", "cpu"
+  batch_scale: 1.0      # multiply every phase batch size (lower if OOM)
+  seed: 0
+  optimizer: SGD           # AdamW with paper LRs diverges to NaN at Phase 2.
+                          # Original code used SGD (Ultralytics default). The
+                          # paper's lr0=0.01 + momentum=0.937 are SGD values.
+  momentum: 0.937         # SGD momentum. Paper Sec. 5.1.2 value.
+  amp: false             # Keep fp32 for stability of custom modules.
+  # Optional reduced schedule for quick previews; null -> full paper schedule.
+  # e.g. {1: 3, 2: 3, 3: 3, 4: 2}
+  epochs_per_phase: null
+
+# --- Evaluation -------------------------------------------------------------
+eval:
+  imgszs: [640, 800, 1024, 1280]
+  per_class_imgsz: 1280   # paper Fig. 6 reports per-class at 1280px
+  fps_imgsz: 1024         # paper reports FPS at 1024px
+  max_det: 600            # max detections/image. VisDrone is dense (~248/img,
+                          # some >500); the YOLO default 300 caps recall. Use
+                          # 300 only when reproducing the paper's exact protocol.
+  tta: false              # test-time augmentation (multi-scale + flips) for the
+                          # mAP passes. Enable per-run via:  run.py evaluate --tta
+
+  # --- Tiled / SAHI inference (eval-only; helps small-object recall) ---------
+  tiled:
+    enabled: false        # turned on via:  run.py evaluate --weights W --tiled
+    slice: 640            # tile size (px); small objects appear larger per tile
+    overlap: 0.25         # fractional overlap between adjacent tiles
+    full_image: true      # also run one full-image pass and merge (SAHI-style)
+    conf: 0.001           # detection confidence floor (paper protocol)
+    nms_iou: 0.6          # IoU for the cross-tile NMS merge
+    max_det: 1000         # max merged detections/image (dense scenes)
+    imgsz_full: 1280      # resolution for the optional full-image pass
+
+# --- Ablation ---------------------------------------------------------------
+ablation:
+  include_multiseed: false   # adds 6 extra runs (seeds 42/123/7)
+  eval_imgsz: 1280       # paper final results are at 1280px (highest phase)
+  alphas: [0.3, 0.5, 0.7]
+
+# --- Heatmaps ---------------------------------------------------------------
+heatmaps:
+  n_images: 4
+  imgsz: 1024
+  mode: eigencam          # activation | eigencam | both

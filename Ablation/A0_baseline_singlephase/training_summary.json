@@ -1,0 +1,22 @@
+{
+  "experiment": "A0_baseline_singlephase",
+  "variant": "baseline",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    "single"
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A0_baseline_singlephase/single/weights/best.pt",
+  "duration": null,
+  "metrics_per_phase": {
+    "single": {
+      "mAP50": 0.39314492551902497,
+      "mAP50-95": 0.2216664876065086,
+      "precision": 0.5243571407426186,
+      "recall": 0.3984016804830352
+    }
+  },
+  "phase_dirs": {
+    "single": "/home/m019/Desktop/MEISCF/runs/ablation/A0_baseline_singlephase/single"
+  }
+}

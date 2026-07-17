@@ -1,0 +1,46 @@
+{
+  "experiment": "A3_meis_sf",
+  "variant": "meis_sf",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase4/weights/best.pt",
+  "duration": "11:29:06.859331",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.36272651584106147,
+      "mAP50-95": 0.2013568113914027,
+      "precision": 0.4823325774954982,
+      "recall": 0.3842528118242274
+    },
+    "phase2": {
+      "mAP50": 0.4376808504570814,
+      "mAP50-95": 0.24958531293877953,
+      "precision": 0.5488625608074932,
+      "recall": 0.4434570234377981
+    },
+    "phase3": {
+      "mAP50": 0.47923804790877533,
+      "mAP50-95": 0.2799427893870774,
+      "precision": 0.5719566027498891,
+      "recall": 0.4855444222614089
+    },
+    "phase4": {
+      "mAP50": 0.5057915744389894,
+      "mAP50-95": 0.2950991919996373,
+      "precision": 0.5880088312278693,
+      "recall": 0.5061285248414779
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase4"
+  }
+}

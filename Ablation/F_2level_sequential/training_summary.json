@@ -1,0 +1,46 @@
+{
+  "experiment": "F_2level_sequential",
+  "variant": "sf_sequential",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase4/weights/best.pt",
+  "duration": "11:59:19.074821",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.3588224080846404,
+      "mAP50-95": 0.1995246879449255,
+      "precision": 0.4837102385648362,
+      "recall": 0.3755051949205604
+    },
+    "phase2": {
+      "mAP50": 0.43966803793442777,
+      "mAP50-95": 0.2536323016663366,
+      "precision": 0.5614963784831347,
+      "recall": 0.4361419497246807
+    },
+    "phase3": {
+      "mAP50": 0.49918417637690987,
+      "mAP50-95": 0.29406853574412456,
+      "precision": 0.5885896451868385,
+      "recall": 0.49740489053175374
+    },
+    "phase4": {
+      "mAP50": 0.5287976270307466,
+      "mAP50-95": 0.3135909200314122,
+      "precision": 0.5965987199284206,
+      "recall": 0.5288286826459508
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase4"
+  }
+}

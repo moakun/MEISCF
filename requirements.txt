@@ -1,0 +1,12 @@
+# MEISCF-YOLO dependencies.
+# Pin Ultralytics to the 8.3.x line the parser patch targets. If you must use a
+# newer version and registration fails, see the note in meiscf/registry.py.
+ultralytics>=8.3.0,<8.4.0
+torch>=2.0.1
+torchvision>=0.15.2
+numpy>=1.24
+matplotlib>=3.7
+opencv-python>=4.8
+Pillow>=9.5
+PyYAML>=6.0
+pandas>=2.0

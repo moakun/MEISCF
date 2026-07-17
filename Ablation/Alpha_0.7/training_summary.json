@@ -1,0 +1,46 @@
+{
+  "experiment": "Alpha_0.7",
+  "variant": "full",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase4/weights/best.pt",
+  "duration": "12:10:50.568460",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.37222967855719763,
+      "mAP50-95": 0.20727121470293852,
+      "precision": 0.4920764347681181,
+      "recall": 0.3893369932681475
+    },
+    "phase2": {
+      "mAP50": 0.4395713162658093,
+      "mAP50-95": 0.2513027945866909,
+      "precision": 0.5593194814375709,
+      "recall": 0.44278151988087366
+    },
+    "phase3": {
+      "mAP50": 0.4853784937712544,
+      "mAP50-95": 0.28421313339470305,
+      "precision": 0.5743291659117375,
+      "recall": 0.4951607728287211
+    },
+    "phase4": {
+      "mAP50": 0.5116269169066097,
+      "mAP50-95": 0.2987876670001816,
+      "precision": 0.5901636935647019,
+      "recall": 0.5233361412652835
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase4"
+  }
+}

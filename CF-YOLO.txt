@@ -1,0 +1,629 @@
+                                       JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                   1
+
+                                            CF-YOLO: Cross Fusion YOLO for Object
+                                        Detection in Adverse Weather with a High-quality
+
+                                                           Real Snow Dataset
+
+                                       Qiqi Ding, Peng Li, Xuefeng Yan, Ding Shi, Luming Liang, Weiming Wang, Member, IEEE, Haoran Xie, Senior
+                                               Member, IEEE, Jonathan Li, Senior Member, IEEE, and Mingqiang Wei, Senior Member, IEEE
+
+arXiv:2206.01381v1 [cs.CV] 3 Jun 2022     Abstract--Snow is one of the toughest adverse weather con-               benchmark datasets either captured under normal weather con-
+                                       ditions for object detection (OD). Currently, not only there is a           ditions [7]­[10] or by synthetic snow (e.g., SnowCityScapes
+                                       lack of snowy OD datasets to train cutting-edge detectors, but              [11]). Such trained models have the well-known domain shift
+                                       also these detectors have difficulties learning latent information          problem, thus generalizing poorly in real-world snowy sce-
+                                       beneficial for detection in snow. To alleviate the two above                narios. (2) Existing detectors have difficulties learning latent
+                                       problems, we first establish a real-world snowy OD dataset,                 information beneficial for detection in snow, since snow can
+                                       named RSOD. Besides, we develop an unsupervised training                    destroy the low-level vision information (texture, outline, etc.)
+                                       strategy with a distinctive activation function, called P eak Act,          of the objects in the images.
+                                       to quantitatively evaluate the effect of snow on each object. Peak
+                                       Act helps grading the images in RSOD into four-difficulty levels.              In this paper, we observe that the performance of current
+                                       To our knowledge, RSOD is the first quantitatively evaluated                vision techniques is still mainly benchmarked under normal
+                                       and graded snowy OD dataset. Then, we propose a novel Cross                 weather conditions. Even the top-performing object detec-
+                                       Fusion (CF) block to construct a lightweight OD network based               tors undergo severe performance degradation under adverse
+                                       on YOLOv5s (call CF-YOLO). CF is a plug-and-play feature                    weather conditions. Therefore, we raise a practically mean-
+                                       aggregation module, which integrates the advantages of Feature              ingful detection question under adverse weather: Does the
+                                       Pyramid Network and Path Aggregation Network in a simpler                   synergy of establishing a real-snow OD dataset and developing
+                                       yet more flexible form. Both RSOD and CF lead our CF-YOLO                   a feature aggregation module to learn latent information,
+                                       to possess an optimization ability for OD in real-world snow.               actually enhance the capability of cutting-edge OD networks
+                                       That is, CF-YOLO can handle unfavorable detection problems                  in the snowy condition?
+                                       of vagueness, distortion and covering of snow. Experiments show
+                                       that our CF-YOLO achieves better detection results on RSOD,                    To answer this question, (1) we collect a high-quality
+                                       compared to SOTAs. The code and dataset are available at                    outdoor dataset (RSOD) towards real-snow object detection.
+                                       https://github.com/qqding77/CF-YOLO-and-RSOD.                               RSOD contains 2100 real-world snowy images annotated in
+                                                                                                                   the format of COCO and YOLO (with labeled pedestrians,
+                                          Index Terms--CF-YOLO, RSOD dataset, Snowy object detec-                  cars, traffic lights, etc.). (2) We endeavor to quantitatively
+                                       tion, Peak act, Cross fusion                                                evaluate the effect of snow on each object by introducing
+                                                                                                                   an indicator called snow coverage rate (SCR). In order to
+                                                                 I. INTRODUCTION                                   calculate SCR, we develop an unsupervised training strategy to
+                                                                                                                   train a CNN model with a distinctive activation function called
+                                       C NN-based detectors heavily depend on the integrity of                     P eak Act. SCR is exploited to grade the images in RSOD
+                                             objects in an image [1]­[3]. Unfortunately, objects are               into four-difficulty levels (i.e., easy, normal, difficult, and
+                                       often partially or even fully covered by snow in winter. Images             particularly difficult). Since objects covered under different
+                                       captured under such adverse weather will spontaneously lose                 degrees of snow distinctly affect the performance of detectors,
+                                       the significant information of describing objects, thus easily              we need such gradation to understand how snow degrades
+                                       leading to the collapse of most object detection (OD) methods               the accuracy of object detection. (3) We propose a plug-
+                                       which originally behave well in normal weather [4]­[6].                     and-play Cross Fusion (CF) block. Instead of relying on
+                                                                                                                   the traditional top-down and bottom-up operations [12], the
+                                          There exist two major challenges in detecting objects cov-               CF block simultaneously aggregates features from different
+                                       ered by snow: (1) Capturing snow/snow-free image pairs in                   stages of the backbone. By directly fusing these features, the
+                                       real-world scenarios is extremely difficult or nearly impos-                destroyed low-level information of the objects in the high-
+                                       sible. Therefore, existing detectors will train themselves on               level features can be recovered. Besides, the CF block supports
+                                                                                                                   different in-out stages, making it a more flexible and adaptive
+                                          Q. Ding, P. Li, X. Yan, D. Shi and M. Wei are with the School of         plug-and-play module. (4) We propose a lightweight object
+                                       Computer Science and Technology, Nanjing University of Aeronautics and As-  detection network named CF-YOLO by replacing the neck of
+                                       tronautics, Nanjing, China (e-mail: qqding@nuaa.edu.cn, pengl@nuaa.edu.cn,  YOLOv5s with CF. Experiment results on RSOD and COCO
+                                       yxf@nuaa.edu.cn, shiding@nuaa.edu.cn, mingqiang.wei@gmail.com).             clearly show that our CF-YOLO not only has an excellent
+                                                                                                                   optimization ability for OD in the real-world snowy scene but
+                                          L. Liang is with Microsoft, USA (llmpass@gmail.com).
+                                          W. Wang is with the School of Science and Technology, Hong Kong
+                                       Metropolitan University, Hong Kong, China (wmwang@hkmu.edu.hk).
+                                          H. Xie is with the Lingnan University, Hong Kong, China (e-mail:
+                                       hrxie@ln.edu.hk).
+                                          J. Li is with the Department of Geography and Environmental Management
+                                       and Department of Systems Design Engineering, University of Waterloo,
+                                       Waterloo, Canada (e-mail: junli@uwaterloo.ca).
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021         2
+
+also possesses an effective generalization ability.               labels and bounding boxes; representative methods include
+   Our main contributions are summarized as follows:              YOLO [17]­[19], SSD [20], RetinaNet [21] and EfficientDet
+                                                                  [22]. One-stage detectors are relatively faster with much higher
+   · We present a real-world snowy OD dataset (RSOD). The         FPS than two-stage detectors. DETR [23] is the first model to
+      new dataset is labeled in both the COCO and YOLO            introduce the transformer into object detection task and regards
+      formats. To our knowledge, this is the first dataset that   OD as a query prediction problem.
+      focuses on improving the OD accuracy in real-world
+      snowy scenarios.                                            B. Object Detection in Adverse Weather
+
+   · We introduce an indicator called snow coverage rate             A detector trained on clean images usually fails to yield de-
+      (SCR) and develop an unsupervised training strategy to      sirable results under adverse weather conditions (e.g., snowy,
+      train a CNN model with a distinctive activation function    rainy, hazy and low-light), due to the domain shift in input
+      (Peak Act) to quantitatively evaluate the effect of snow    images [24]. Currently, there are mainly three solutions to
+      on each object. We grade the images in RSOD into four-      alleviate image degradation. The first solution is to dilute
+      difficulty levels based on the evaluation. Such grading is  the effect of weather-specific information by a pre-processing
+      helpful to better understand how the snow degrades the      step, such as image desnowing/derainig/dehazing [11], [25]
+      OD performance.                                             or low-light image enhancement [26]. As known, both the
+                                                                  weather-specific information and image details (an important
+   · We propose a new plug-and-play Cross Fusion (CF) block       cue for object detection) are both of high frequency and small
+      to aggregate features from different stages in a time with  in scale. Although complicated image restoration models are
+      the flexibility of allowing different in-out stages. Users  designed and trained on synthetic data with strong pixel-
+      can adjust the numbers of stages, layers of CF and the      level supervision, they still lose image details easily. The
+      size of parameters in different networks to explore the     second solution is to jointly learn image restoration and object
+      CF's performance.                                           detection by two-branch networks [2], where the two branches
+                                                                  share the feature extraction layers. However, it is hard to
+   · Many outdoor vision systems (e.g., autonomous driving,       balance the two tasks during training. The third solution is
+      surveillance) are required to operate smoothly in snowy     to exploit unsupervised domain adaptation [1] to align the
+      weather. We propose a lightweight yet effective CF-         features of clean images (sources) and images captured under
+      YOLO to facilitate outdoor applications in the frequent     adverse weather (targets). However, the latent information
+      scenarios of snow.                                          that is beneficial for detection is often ignored during image
+                                                                  restoration.
+   The rest of this work is organized as follows. Section II in-
+troduces the related works from four aspects: object detection    C. Snowy Datasets
+in normal weather, object detection in adverse weather, image
+desnowing and benchmark datasets of snowy weather, and               Due to the lack of real-world paired snow/snow-free images,
+feature fusion. Section III describes our constructed real-world  existing datasets on snowy weather are generally obtained by
+snowy object detection dataset (RSOD). Section IV introduces      adding snow masks to clean images, like Snow100K in [27],
+the proposed CF-YOLO to promote the detection accuracy            SnowKITTI2012 [11], and SnowCityScapes [11]. Existing
+in snowy weather. Section V shows the sufficient experiment       snow removal methods trained on these synthetic datasets
+results to demonstrate the effectiveness of CF-YOLO. Section      always have good performance but deteriorate significantly on
+VI concludes this work.                                           real-world snowy images. Meanwhile, they only remove snow
+                                                                  in the air, ignoring the fact that objects are often covered
+                         II. RELATED WORK                         by snow which affects the performance of object detection.
+                                                                  Moreover, the results of these methods will lose image details
+   In this section, we first discuss the techniques of different  (an important cue for high-level vision tasks), since image
+object detectors in normal weather. Then we introduce the         details and snow are both of high frequency and small in
+existing solutions for object detection in adverse conditions.    scale. Therefore, they inadequately improve the performance
+After that, we discuss the existing works and datasets on         of down-stream applications.
+snowy weather. Finally, we make a brief comparison of
+different feature fusion modules.                                 D. Feature Fusion
+
+A. Object Detection in Normal Weather                                Existing feature fusion works contain FPN [12], PANet [28],
+                                                                  NAS-FPN [29], BiFPN [22], ASFF [30], etc. FPN integrates
+   Object detection predicts both the labels and bounding         features from different stages of the backbone through a
+boxes of objects. Existing methods are either two-stage or        top-down path. Based on FPN, PANet exploits a bottom-up
+one-stage based, which usually contain a backbone for feature     path augmentation to enhance the entire feature hierarchy.
+extraction, a neck for feature fusion and a head for prediction.  The BiFPN Layer [22] is developed for easy and fast multi-
+Two-stage detectors first generate regions of interest (RoIs)     scale feature fusion by bidirectional cross-scale connections.
+from the image, and then classify these RoIs by training deep     OctConv [31] decomposes features into different spatial fre-
+networks; representative methods include R-CNN [13] and           quencies to improve the efficiency of CNNs. gOctConv [32]
+its variants, such as fast R-CNN [14], faster R-CNN [4], R-
+FCN [15], and Libra R-CNN [16]. Different from the highly
+accurate but very time-consuming two-stage detectors, one-
+stage detectors utilize a single CNN to directly predict object
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                                3
+
+is proposed which possesses the advantage of flexible feature                                    benchmarks for the evaluation. We assume that the benchmark
+fusion for the arbitrary in-and-out branches. In this work, we                                   of snow effect depends on the snow coverage rate (SCR) in
+exploit gOctConv as the fundamental component of our cross                                       the object's bounding box. Therefore, SCR can be formulated
+fusion block, which exhibits a good ability for feature fusion.                                  as SCR = Asnow/Abbox, where Asnow, Abbox represent the
+                                                                                                 areas of snow and bounding box, respectively.
+ III. REAL-WORLD SNOWY OBJECT DETECTION DATASET
+                                                                                                    Calculating SCR directly is challenging because it costs a
+A. Dataset Introduction                                                                          lot to label out all snow in the dataset. To address this problem,
+                                                                                                 we develop an unsupervised training strategy to train a CNN
+   The established real-world snow object detection dataset,                                     which responds to snow pixels and depresses non-snow pixels.
+called RSOD, contains 2100 images captured in various real-                                      Inspired by sparse coding, our strategy contains three essential
+world snowy scenes. To make RSOD convenient to use for                                           factors.
+public studies, the labels are fully compatible with MSCOCO
+and we provide both COCO and YOLO formats. Fig. III shows                                           First, to respond to snow pixels, we train a CNN model
+the label distributions in RSOD. Note that most of our captured                                  with images that heavy snow covers most of the image area,
+snowy images are about townscape and traffic scenes.                                             where the corresponding ground truth is a map with the same
+                                                                                                 size of the input image and with all pixels being equal to 1.
+3500    3159                                                                                     This step will guide the model to map each pixel to the value
+3000              2606                                                                           of 1, and the convolution kernels in the model will encode
+2500                                                                                             snow features through back propagation.
+
+2000                              Easy         Normal                                               Second, to depress non-snow pixels, we design an activation
+                                                                                                 function with a very narrow activation bandwidth, which
+1500                                                                                             allows the response of the convolution kernels to some specific
+                                                                                                 features like snow, and depress other features. As shown in Fig.
+1000                    451  443    Difficult  Particularly Difficult                            2(d), we call the activation function P eak Act. Since snow
+ 500                              419                                                            covers the largest area of the images we use to train, it is
+     0                            268 147 126                                                    natural that convolution kernels will respond to snow pixels
+                                                           99  144                               and depress non-snow pixels.
+
+        person                                                                                      The function of Peak Act lies on the following three rules:
+                 car
+                                                                                                    · Be a peak function where the peak is (1, 1). Because our
+                          truck                                                                        ground truth is a matrix with all elements being equal to
+                                   traffic light                                                       1, the training process will guide the outputs towards 1.
+                                                                                                       And the peak will constrain the effective area in a very
+                                            umbrella                                                   small bandwidth, as shown in Fig. 2(d).
+                                                     handbag
+                                                              backpack                              · Zero maps to zero. If a zero mapping to a non-zero
+                                                                                                       value, there will be some lazy convolution kernels with
+                                                                       bicycle                         all weights being equal to 0, which smooth all the pixels
+                                                                                bus                    to a non-zero value. Therefore, features of later layers
+                                                                                                       can be easily equal to the ground truth, which leads to
+                                                                                         others        the failure of the training.
+
+Fig. 1. The label distributions in the proposed RSOD. Most of the annotated                         · Be a concave function to make sure that feature values
+objects are cars (2606 labeled), pedestrians (3159 labeled) and traffic lights                         will not get closer to 1 after passing through the activation
+(443 labeled). The detectors perform differently under different snow coverage                         function. Features can only get closer to 1 through
+rates. We divide snow images into four difficulty levels (i.e. easy, normal, hard,                     optimization.
+and particula hard) according to the snow coverage rates.
+                                                                                                    The proposed Peak Act is defined as:
+   Considering the fact that the performance of cutting-edge
+detectors will deteriorate when objects are covered under                                        0.2x              x<0
+different degrees of snow, we grade the snowy images into four                                   
+difficulty levels, i.e., easy, normal, difficult, and particularly
+difficult. Such gradation facilitates determining the effect of                                  
+snow on objects, which helps to study how snow degrades the                                      x2
+accuracy of object detection.                                                                    f (x) = (x - 2)2  0x<1  (1)
+
+   How to grade the snowy images objectively is the main                                                           1x<2
+challenge to construct the dataset. In order to conduct a fair
+gradation of the difficulty levels, we introduce an indicator                                    
+called SCR, which is used to calculate the snow coverage rate
+(SCR) of different objects. By combining SCR and human                                           -0.2(x - 2) x  2
+observation, we grade image numbers 1~600 to the easy level,
+601~1600 to the normal level, 1601~2000 to the difficult level                                   Different from many other activation functions, Peak Act is
+and 2001~2100 to the particularly difficult level. Fig. 1 shows                                  not a monotone increasing or a continuously differentiable
+the typical images of different levels.                                                          function. Our motivation is simple: by limiting the activation
+                                                                                                 bandwidth of the convolution kernel weights in a very narrow
+B. Unsupervised Training for SCR Calculation                                                     space, we can obtain a sparse and finite weight matrix that
+                                                                                                 responds to snow flexibly.
+   Quantitatively evaluating the effect of snow on the covered
+objects is challenging even for humans, since there are no                                          Third, the last layer of the CNN is a M ax - out function,
+                                                                                                 which will output the maximal feature value of every pixel in
+                                                                                                 the channel dimension, and form a one-channel feature map
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                    4
+
+                 (a) Input                                 (b) CH-31 and SCR     (c) CH-11 and SCR
+
+   (d) Peak Act                                               (e) CH-31 3D       (f) CH-11 3D
+
+Fig. 2. The visualized results of the CNN model. Different channels respond to different image features. The channel-31 (CH-31) responds to snow exclusively
+and provides the snow coverage rate of the object. The channel-11 (CH-11) responds to the edge of the object.
+
+                            5*5 Conv                             5*5 Conv                      Testing Head
+                             3-->16                              144-->16
+
+                            Peak Act                             Peak Act
+
+                            3*3 Conv                       C     3*3 Conv     C
+                             3-->64                              144-->16
+
+                            Peak Act                             Peak Act                           Max out
+
+                            1*1 Conv                             1*1 Conv                      Training Head
+                             3-->64                              144-->32
+
+                            Peak Act                             Peak Act
+
+Fig. 3. The structure of CNN in our unsupervised training strategy. During training, we use the output of the training head, a M axOut layer, to compute
+the loss. While testing (i.e., calculating SCR), we use the output of the testing head.
+
+O to compute the loss with the ground-truth (GT ). Due to           The CNN model is shown in Fig. 3. During training and
+the fact that the upper limit of Peak Act is 1, the output       testing (i.e., calculating SCR), we exploit different heads. The
+of the network will be always less than or equal to 1. The       input image is decomposed into 32 channels by the model,
+M ax - out layer will encourage different channels to respond    and we binarize and visualize the feature maps of different
+to different features, leading to highly specific optimizations  channels. As shown in Fig. 2(b) and Fig. 2(c), the Feature
+of the kernels. We define the loss as:                           Map-31 responds to snow very specifically, while the Feature
+                                                                 Map-11 responds to edges. The feature maps which respond
+1                           (GTij - Oij) +  P 1 (2)              to snow can be used to calculate SCR by counting the light
+Loss =                                                           pixels in the binarized maps. We also visualize the 3D surfaces
+            W H  ij                                              of different channels, as shown in Fig. 2(e) and Fig. 2(f), it
+                                                                 clearly shows that the channel-31 responds to the snow area
+where P denotes the network's parameters,  = 1, and  =           and depresses the non-snow area distinctively.
+0.0001 are the weights to balance the two terms. The first term
+is to guide the optimization direction, and the second is an L1     The utilization of Peak Act and the proposed CNN model
+regularization to get a sparse feature.
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                                     5
+
+    Cross                                                           PRelu       CSP Module          CBS = Conv + BN + SiLu
+    Fusion                                                     BN               CSP Module
+                                                                                CSP Module
+X1                       Y1                                gOctConv
+
+                                                                                                    CBS                CBS +
+                                                                                                    k=1                k=3
+
+X2                       Y2                                                CBS
+                                                                           k=1
+                                                                                                               Bottleneck
+X3                       Y3                                CBS    Bottleneck    Bottleneck  C  CBS  + Add
+                                                           k=1                                 k=1  C Concatrnate
+
+Fig. 4. The structure of Cross Fusion. X1, X2, X3, Y1, Y2, Y3 indicate the different stages of input and output branches. The features from each level are
+fed into a gOctConv (without sharing weights), a Batch Normalization layer, and a PRelu activation function. The post-processing component of the CF block
+is Cross Stage Partial (CSP) [33].
+
+with an unsupervised training strategy are essential to calculate may dilute meaningful features, interfere with the network to
+
+the SCR and grade the snowy images. More study will be extract meaningful features from objects covered by snow, and
+
+addressed in Section V.                                                    decrease the confidence of the prediction.
+
+                        IV. METHODOLOGY                                    A. Cross Fusion
+
+   Recently, cutting-edge detectors achieve remarkable                        To address this problem, we propose a new Cross Fusion
+progress and strengthen many outdoor vision systems, e.g.,                 (CF) block that can directly integrate the features from dif-
+autonomous driving, and surveillance. But these methods also               ferent levels. The purpose of this module is to shorten the
+suffer from various adverse weather and fail to yield desirable            propagation route instead of making the model more compli-
+results. Since models trained under normal circumstances do                cated or deeper. This alleviates the dilution of meaningful
+not assure an advantage over the contaminated scene. As                    features when the network goes deeper. In detail, inspired
+shown in Tab. I, the performance of various detectors trained              by [32], we utilize gOctConv as the fusing component of
+on MSCOCO degrades significantly on RSOD, due to the                       the CF module. As shown in Fig. 4, the input feature maps
+domain shift problem.                                                      with different scales are simultaneously fed to the CF layer,
+                                                                           encouraging the last stage to reach low-level features directly.
+   Put the enormous degradation aside, we also find that some              The CF layer also allows different in-out branches, making CF
+large objects are more likely to be omitted by YOLOv5s in                  a flexible plug-and-play module to adapt to different models.
+snowy images. This may violate our common sense because                    The post-processing component is the Cross Stage Partial
+many studies have shown that detection models perform better               (CSP) module.
+on large objects. Based on this observation, we make a small
+adjustment to YOLOv5s. By setting the detection confidence                    Compared with the top-down and bottom-up structure of
+threshold to 0.01, we surprisingly find that YOLOv5s has                   "FPN+PANet", CF can provide a shorter route between low-
+already detected those large objects in the snowy images                   level and high-level features. One of the feature fusion pro-
+(similar phenomena also exist in many other snowy images),                 cesses of CF can be expressed as:
+but the confidence is too low to pass Non-Maximum Sup-
+pression (NMS), leading to the mis-prediction, see Fig. 10(b)                  O1 = fCSP (Conv11(X1)  Conv12(Resize(X2)) (3)
+for instance. The reason is that heavy snow can change the                           Conv13(Resize(X3)))
+outline, texture and surface of objects, missing and distorting
+the low-level vision information.                                          fCSP denotes the CSP module and  means the element-
+                                                                           wise addition. O1 is the up-branch of CF outputs, and other
+   Yolov5s uses the Feature Pyramid and Path Aggregation                   branches have the same expression. Feature fusion of CF
+Network (FPN+PANet) as the feature fusion module. Fea-                     happens before the post-processing component, while feature
+tures pass through a top-down and bottom-up route before                   fusion of "FPN+PANet" can only happen sequentially along
+the YOLO prediction head. According to the structure of                    with the top-down and bottom-up operations.
+YOLOv5s, objects of different sizes are predicted in different
+stages, and large objects are predicted in the last stage, which           B. CF-YOLO
+means large object features pass through the deepest network.
+In snowy images, low-level vision information is missed and                   We replace the neck of YOLOv5s with CF and propose
+distorted, and this meaningless information will propagate                 CF-YOLO (see Fig. 5). Besides, the structure of CF-YOLO is
+along with the network. In a deep network, the receptive field             very flexible. It can be easily modified by changing the number
+of deep layers is relatively large, therefore, deeper layers are           of CF (n), in-out stages (In and Out), and the kernel size of
+likely to take more meaningless features into account. This                gOctConv (K). In this work, our CF-YOLO stacks two layers
+                                                                           of CF (n=2). CF-YOLO (K=1), CF-YOLO (K=3) represents
+                                                                           that the kernel sizes of CF equals to 1 and 3 respectively.
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                         6
+
+CFB     CFB  YOLO head                                                               Sigmoid is a finite function towards the training direction
+             YOLO head                                                            like Peak Act. Since the lim = 1, this will lead the
+             YOLO head
+                                                                                                                                   N +
+     n  CFB                                                K=1 or 3
+                                                                                  vanishing gradient problem. Moreover, it allows `lazy' kernels
+                In=3                                                              to have very great weight values, forcing the outputs of every
+                                                                                  pixel close to 1. And there will be no differences between
+             Out=3 Post=CSP                                                       snow areas and non-snow areas.
+
+Fig. 5. The architecture of the proposed CF-YOLO. Modifying the number of            For Leaky ReLU, it has no limit or vanishing gradient
+CF (n), in-out stages (In and Out), and the kernel sizes (K) to obtain different  problem, but it is an infinite function towards the training
+versions of CF-YOLO for different usages.                                         direction. When the feature value is very large, the weight
+                                                                                  value will be small, which will narrow the gap between snow
+               V. EXPERIMENTS AND DISCUSSION                                      and non-snow areas.
+
+A. Comparison of different activation functions                                      For ReLU, it has the disadvantages of both Sigmoid and
+                                                                                  Leaky ReLU.
+   Since the input images to the network used to calculate SCR
+are heavy snow images, the statistical distribution of training                      All of the above reasons make the proposed Peak Act
+data concentrates on the feature of snow, which encourages                        unique. By leveraging the Peak Act and the unsupervised
+the network to respond to snow. To verify the effectiveness of                    training strategy, we obtain the maps using only dozens of
+our proposed Peak Act, we compare the general activation                          snow images and a few minutes of training time, making
+functions, namely Sigmoid, ReLU [34] and Leaky ReLU                               quantitatively evaluating snowy images possible. Our network
+[35] with Peak Act. And we select the best feature map                            can figure out the snow areas in images that are not used
+visualization results for comparison.                                             during training. As shown in Fig. 8, the network successfully
+                                                                                  generates feature maps of snow and enables the calculation of
+   As shown in Fig. 6, the output of the CNN models using                         SCR. For image (a), the SCR1 = 0.75, here SCR1 indicates
+different activation functions performs distinctively. Sigmoid                    the SCR of object 1. For image (b), the SCR1 = 0.51,
+(column 1) cannot identify the difference between snow and                        SCR2 = 0.58. For image (c), the SCR1 = 0.74. For image
+non-snow areas. The best feature map almost equals to GT ,                        (d), the SCR1 = 0.35, SCR2 = 0.56, SCR3 = 0.09,
+which is a matrix with all elements equal to 1. For ReLU                          SCR4 = 0.07. Image (a) and (c) get much higher SCR,
+(column 2) and Leaky ReLU (column 3), feature values of                           which coincides with human observation. It proves that our
+different areas are not distinctive enough, thus we cannot                        unsupervised training strategy can quantitatively evaluate the
+calculate the SCR. The model with Leaky ReLU in former                            effect of snow.
+layers and Peak Act in the last layer (column 4) shows a
+much better performance than networks that only use general                       B. Performance of Detectors on RSOD
+activation functions. But the details of the best feature map are
+not as good as the network using Peak Act only. Only Peak                            Our CF-YOLO is implemented in PyTorch. All training
+Act can ensure that the model separates out the snow features                     settings are as same as YOLOv5s (the batch size=32, the
+from non-snow features. We have to raise this question: what                      SGD optimizer with the momentum of 0.937 and the weight
+makes Peak Act unique?                                                            decay of 0.0005, and the learning rate=0.01). We compare our
+                                                                                  CF-YOLO with different SOTA methods, including YOLOv5s
+   As shown in Fig. 7, Peak Act has the following characters                      [19], SSD300 [20], EfficientDet D0 and D1 [22].
+compared with the general activation functions:
+                                                                                     Furthermore, RSOD is divided into the training, validation
+   · Peak Act has no vanishing gradient problem. The function                     and test sets with 1701, 189 and 210 images respectively. To
+      has a non-zero and great derivative in the whole domain.                    balance the difficulty of each subset, the images are randomly
+      Making the CNN we proposed in the unsupervised train-                       allocated to the subsets.
+      ing strategy easy to train.
+                                                                                     In order to verify the four-difficulty levels of RSOD, we test
+   · The range of Peak Act is [-, 1]. It is a finite function                     on the four levels respectively and the whole dataset. For a
+      towards the training direction. This helps to maintain the                  fair comparison, all detectors are trained with MSCOCO only.
+      value of weights great. In the CNN, the feature value                       As shown in Table I, CF-YOLO achieves steady and obvious
+      is always less than 1, leading the network to keep the                      advantages over SOTAs in each difficulty level and the whole
+      value of weights great in order to keep the output close                    dataset. Besides, as shown in Fig. 9, compared with YOLOv5s,
+      to 1. And greater weight value enlarges the differences                     CF-YOLO has a higher confidence in detection results and
+      between respond areas and non-respond areas.                                can reduce missed and false detections. The reason is that the
+                                                                                  proposed CF block enables the direct interaction of the features
+   · The ground truth we generate in the unsupervised training                    at different levels, so that the meaningful information diluted
+      strategy is the peak of Peak Act. This limits the output of                 in the high-level features can be recovered. Furthermore,
+      convolutions in a very narrow bandwidth, which leads to                     as shown in Table I, detectors suffer severe degradation on
+      the sparsity of kernels. With Peak Act, different channels                  different difficulty levels. This proves that our grading method
+      have to concentrate on specific features.                                   can accurately grade snow images into different levels.
+
+                                                                                     Subsequently, to compare the performance of different
+                                                                                  methods after training on the RSOD dataset, we train the
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                                                         7
+
+(a) Best feature map using (b) Best feature map using (c) Best feature map using (d) Best feature map using (e) Best feature map using
+
+Sigmoid                ReLU                                  Leaky ReLU            Leaky ReLU and Peak Act Peak Act
+
+                                                                                   in last layer
+
+(f) 3D surface of best chan- (g) 3D surface of best chan- (h) 3D surface of best chan- (i) 3D surface of best chan- (j) 3D surface of best chan-
+
+nel using Sigmoid      nel using ReLU                        nel using Leaky ReLU  nel using Leaky ReLU and nel using Peak Act
+
+                                                                                   Peak Act in last layer
+
+Fig. 6. The visualized results of the CNN model with different activation functions. The model with Peak Act generates the clearest feature map to calculate
+the SCR.
+
+         (a) Peak Act                  (b) Sigmoid                                 (c) ReLU                (d) Leaky ReLU
+
+(e) Peak Act gradient        (f) Sigmoid gradient                                  (g) ReLU gradient       (h) Leaky ReLU gradient
+
+Fig. 7. Different activation functions and their gradients.
+
+detectors on RSOD with the MSCOCO pre-trained weights.                   C. Performance of Detectors on MSCOCO
+We train the networks with only 20 epochs, which is enough
+since RSOD is much smaller than MSCOCO. As shown in                         To further investigate the generalization ability of CF-
+Tab. II, CF-YOLO still outperforms SOTAs a lot on the                    YOLO, we train two versions (K = 1 or 3) of CF-YOLO
+validation and test sets, which confirms the advantage of CF-            from scratch for 300 epochs on MSCOCO. Tab. III shows
+YOLO in snow weather.                                                    the comparison between CF-YOLO and SOTAs on MSCOCO.
+                                                                         We can see that CF-YOLO with the kernel size of K = 1
+   To further study how CF works, we conduct PCA for the                 or K = 3 achieves close results to YOLOv5s. It means our
+outputs of both our CF block and the aggregation module                  CF-YOLO performs well in snowy weather while still being
+in YOLOv5s (see Fig. 10 (c) and (d)): the red points                     competitive in normal weather.
+indicate the object pixels and the blue points represent
+the background pixels. We calculate the average distance to              D. Computational Complexity
+the center of its corresponding cluster. It is easy to find that the
+object pixels of CF-YOLO are better clustered in the feature                CF-YOLO (K=3) has much more parameters than
+space, which demonstrates the efficiency of our method on the            YOLOv5s and CF-YOLO (K=1) (see Tab. III), since gOctConv
+snowy scenes.                                                            handles feature maps from and to all stages simultaneously,
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                                                                                8
+
+                                                  (1) Predictions of CF-YOLO           (c)                                                              (d)
+            (a)                                   (b)
+
+                                                  (2) Predictions of YOLOv5s
+
+            (e)                                   (f)                                  (g)                                                              (h)
+
+Fig. 8. The visualized results of the proposed model with the unsupervised training strategy. SCR is marked in the generated maps.
+
+COMPARISON  WITH  EXISTING  METHODS    (3)  Outputs of YOLOv5s  NwiOthNcoOnUTfiARdeBPnRcLeOEtPhIOreSshEoDldD=A0.T0A01SET.  DETECTORS  (PRE-TRAINED  ON  MSCOCO)    SHOW  VERY
+                                     FOR    OBJECT DETECTIO
+
+DIFFERENT PERFORMANCES ON RSOD. OUR DATASET WITH THE FOUR-DIFFICULTY LEVELS PROVIDES A QUANTITATIVE WAY TO STUDY THE
+
+                  DEGRADATION OF DETECTORS IN REAL-WORLD SNOW. YOLO-BASED DETECTORS AVERAGELY WORK BETTER.
+
+            Method                    Easy (600)       Normal (1000)  Difficult (400)  Particularly Difficult (100)                                 All Levels (2100)
+                                     AP AP50           AP AP50        AP AP50
+          YOLOv5s                    41.1 61.3         36.1 55.5      26.4 41.3        AP                                  AP50                     AP       AP50
+EfficientDet D0 (CVPR'20)            20.1 28.6         22.9 34.4      17.1 27.1
+EfficientDet D1 (CVPR'20)            22.4 30.1         26.6 37.6      18.7 29.5        25.2                                           39.2          34.3 52.0
+                                     26.1 44.2         27.1 46.8      16.8 29.8
+    SSD300 (ECCV'16)                 45.6 67.5         34.9 55.0      27.7 44.4        29.1                                           41.0          18.5 27.2
+      CF-YOLO (K=1)                  63.8 72.3         35.5 56.0      26.3 41.5
+      CF-YOLO (K=3)                                                                    26.6                                           45.5          21.1 29.9
+
+                                                                                       20.5                                           37.4          23.1 40.2
+
+                                                                                       30.7                                           47.1          34.5 53.4
+
+                                                                                       31.9                                           44.2          32.7 50.2
+
+                                                           (1) Predictions of CF-YOLO
+
+                                                                                           (2) Predictions of YOLOv5s
+
+Fig. 9. The predicted results of CF-YOLO and YOLOv5s trained on MSCOCO only. Compared with YOLOv5s, our method: (1) has higher confidence in
+detection results (columns 1 and 2); (2) can reduce missed detections (columns 3 and 4); (3) can reduce false detections (columns 5 and 6).
+
+resulting in such the excessively large parameter size. gOct-         the different stages. Still, the speed of CF-YOLO is sufficient
+Conv takes up most of the parameters in the CF block.                 for possible application scenarios.
+The parameter size of one single CF block rises from 2.3M
+to 8.7M with the increase of the kernel size from 1 to 3.                                       VI. CONCLUSION
+Despite the disproportional parameter rising, CF-YOLO (K=3)
+and CF-YOLO (K=1) consume similar hardware resources to                  Adverse weather often creates the visibility problem for
+YOLOv5s as we can see their FLOPS are similar. The change             the sensors that power automated systems. While cutting-
+of kernel size improves mAP by 0.6% and 0.4% on MSCOCO                edge object detectors have obtained promising results on the
+validation set and test set, respectively. The FPS of CF-YOLO         datasets captured in normal weather, it is still non-trivial
+is lower than other methods. This is mainly caused by the             to detect objects from the low-quality images captured in
+feature fusion process, for CF cannot concurrently conduct            adverse weather (e.g., snowy weather). They often ignore the
+                                                                      latent information beneficial for detection. By developing an
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                                                                 9
+
+                                                                                 TABLE II
+EXPERIMENTAL RESULTS OF DIFFERENT METHODS BEFORE AND AFTER TRAINING ON RSOD. TRAINING ON RSOD BRINGS SIGNIFICANT
+
+     IMPROVEMENTS TO THE MODELS' PERFORMANCE. SOTAS ARE ALSO MORE ROBUST IN SNOWY SCENES BY TRAINING ON RSOD.
+
+      Method            AP (val)                           AP50 (val)               AP (test)    AP50 (test)
+
+    YOLOv5s             Before training / Training on RSOD (20 epochs)
+ EfficientDet D0
+ EfficientDet D1        34.2 / 41.1                        49.8 / 62.5              32.7 / 37.9  55.4 / 64.6
+
+     SSD300             23.0 / 28.9                        33.3 / 47.4              26.3 / 33.3  40.0 / 53.1
+CF-YOLO (K=1)
+CF-YOLO (K=3)           25.1 / 37.8                        34.5 / 56.8              27.9 / 40.2  41.6 / 62.4
+
+                        23.9 / 34.7                        42.4 / 59.8              25.6 / 33.1  46.8 / 59.5
+
+                        35.5 / 41.2                        51.8 / 64.6              35.6 / 42.4  57.6 / 70.6
+
+                        38.9 / 47.5                        56.5 / 71.1              34.0 / 41.9  58.4 / 70.6
+
+                                                                                        TABLE III
+COMPARISON OF CF-YOLO WITH SOTAS ON MSCOCO. WE CONDUCT THE SPEED TEST ON A SINGLE TESLA V100 GPU WITH A BATCH SIZE OF 1,
+
+                                                   TAKING THE AVERAGE SPEED OF 5000 IMAGES OF COCO VAL2017.
+
+Method   Params GFLOPS AP (val) AP50 (val) AP (test) AP50 (test) FPS
+
+YOLOv5s           7.3M  17.3                               36.3               55.3  36.6         55.3  65
+
+EfficientDet D0 3.9M    2.5                                34.3               -     33.8         55.2  63
+
+EfficientDet D1 6.6M    6.1                                40.2               -     39.6         58.6  50
+
+CF-YOLO (K=1) 9.2M      17.4                               35.5               55.6  35.8         55.7  49
+
+CF-YOLO (K=3) 22M       17.4                               36.1               55.8  36.2         55.9  44
+
+Fig. 10. PCA study of CF-YOLO and YOLOv5s, the red and blue points             [3] Y. Gong, Z. Xiao, X. Tan, H. Sui, C. Xu, H. Duan, and D. Li, "Context-
+indicate the pixels of object and background, respectively.                         aware convolutional neural network for object detection in VHR remote
+                                                                                    sensing imagery," IEEE Trans. Geosci. Remote. Sens., vol. 58, no. 1,
+unsupervised training strategy, we establish a high-quality real-                   pp. 34­44, 2020.
+world snow dataset for object detection (RSOD). Considering
+the degradation of CNN-based detectors on RSOD, we propose                     [4] S. Ren, K. He, R. B. Girshick, and J. Sun, "Faster R-CNN: towards
+cross fusion YOLO (CF-YOLO): a lightweight yet effective                            real-time object detection with region proposal networks," CoRR, vol.
+objection detector. The results show that our CF-YOLO not                           abs/1506.01497, 2015.
+only achieves excellent performance on RSOD, but also is
+a competitive and lightweight general detector, which will                     [5] Y. Zhang, Y. Yuan, Y. Feng, and X. Lu, "Hierarchical and robust
+facilitate the outdoor vision systems.                                              convolutional neural network for very high-resolution remote sensing
+                                                                                    object detection," IEEE Trans. Geosci. Remote. Sens., vol. 57, no. 8, pp.
+                             REFERENCES                                             5535­5548, 2019.
+
+ [1] M. Hnewa and H. Radha, "Multiscale domain adaptive YOLO for cross-        [6] J. Guo, J. Yang, H. Yue, H. Tan, C. Hou, and K. Li, "Rsdehazenet:
+      domain object detection," CoRR, vol. abs/2106.01483, 2021.                    Dehazing network with channel refinement for multispectral remote
+                                                                                    sensing images," IEEE Trans. Geosci. Remote. Sens., vol. 59, no. 3,
+ [2] S. Huang, T. Le, and D. Jaw, "Dsnet: Joint semantic learning for object        pp. 2535­2549, 2021.
+      detection in inclement weather conditions," IEEE Trans. Pattern Anal.
+      Mach. Intell., vol. 43, no. 8, pp. 2623­2633, 2021.                      [7] J. Deng, W. Dong, R. Socher, L. Li, K. Li, and L. Fei-Fei, "Imagenet:
+                                                                                    A large-scale hierarchical image database," in CVPR 2009, 2009, pp.
+                                                                                    248­255.
+
+                                                                               [8] T. Lin, M. Maire, S. J. Belongie, J. Hays, P. Perona, D. Ramanan,
+                                                                                    P. Dolla´r, and C. L. Zitnick, "Microsoft COCO: common objects in
+                                                                                    context," in ECCV 2014, 2014, pp. 740­755.
+
+                                                                               [9] X. Cao, X. Fu, C. Xu, and D. Meng, "Deep spatial-spectral global
+                                                                                    reasoning network for hyperspectral image denoising," IEEE Trans.
+                                                                                    Geosci. Remote. Sens., vol. 60, pp. 1­14, 2022.
+
+                                                                              [10] G. Zhang, S. Lu, and W. Zhang, "Cad-net: A context-aware detection
+                                                                                    network for objects in remote sensing imagery," IEEE Trans. Geosci.
+                                                                                    Remote. Sens., vol. 57, no. 12, pp. 10 015­10 024, 2019.
+
+                                                                              [11] K. Zhang, R. Li, Y. Yu, W. Luo, C. Li, and H. Li, "Deep dense multi-
+                                                                                    scale network for snow removal using semantic and geometric priors,"
+                                                                                    CoRR, 2021.
+
+                                                                              [12] T. Lin, P. Dolla´r, R. B. Girshick, K. He, B. Hariharan, and S. J. Belongie,
+                                                                                    "Feature pyramid networks for object detection," in CVPR 2017, 2017,
+                                                                                    pp. 936­944.
+
+                                                                              [13] R. B. Girshick, J. Donahue, T. Darrell, and J. Malik, "Rich feature
+                                                                                    hierarchies for accurate object detection and semantic segmentation," in
+                                                                                    CVPR 2014, 2014, pp. 580­587.
+
+                                                                              [14] R. B. Girshick, "Fast R-CNN," in 2015 IEEE International Conference
+                                                                                    on Computer Vision, ICCV 2015, Santiago, Chile, December 7-13, 2015.
+                                                                                    IEEE Computer Society, 2015, pp. 1440­1448.
+
+                                                                              [15] J. Dai, Y. Li, K. He, and J. Sun, "R-FCN: object detection via region-
+                                                                                    based fully convolutional networks," in NIPS 2016, 2016, pp. 379­387.
+
+                                                                              [16] J. Pang, K. Chen, J. Shi, H. Feng, W. Ouyang, and D. Lin, "Libra R-
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021                         10
+
+      CNN: towards balanced learning for object detection," in CVPR 2019,
+      2019, pp. 821­830.
+[17] J. Redmon, S. K. Divvala, R. B. Girshick, and A. Farhadi, "You only
+      look once: Unified, real-time object detection," in CVPR 2016, 2016,
+      pp. 779­788.
+[18] A. Bochkovskiy, C. Wang, and H. M. Liao, "Yolov4: Optimal speed and
+      accuracy of object detection," CoRR, 2020.
+[19] glenn jocher et al., "yolov5. https://github.com/ultralytics/yolov5," 2021.
+[20] W. Liu, D. Anguelov, D. Erhan, C. Szegedy, S. E. Reed, C. Fu, and
+      A. C. Berg, "SSD: single shot multibox detector," in ECCV 2016, 2016,
+      pp. 21­37.
+[21] T. Lin, P. Goyal, R. B. Girshick, K. He, and P. Dolla´r, "Focal loss for
+      dense object detection," in ICCV 2017, 2017, pp. 2999­3007.
+[22] M. Tan, R. Pang, and Q. V. Le, "Efficientdet: Scalable and efficient
+      object detection," in CVPR 2020, 2020, pp. 10 778­10 787.
+[23] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A. Kirillov, and
+      S. Zagoruyko, "End-to-end object detection with transformers," in ECCV
+      2020, 2020, pp. 213­229.
+[24] V. A. Sindagi, P. Oza, R. Yasarla, and V. M. Patel, "Prior-based domain
+      adaptive object detection for hazy and rainy conditions," in ECCV, ser.
+      Lecture Notes in Computer Science, A. Vedaldi, H. Bischof, T. Brox,
+      and J. Frahm, Eds., vol. 12359, 2020, pp. 763­780.
+[25] D. Jaw, S. Huang, and S. Kuo, "Desnowgan: An efficient single image
+      snow removal framework using cross-resolution lateral connection and
+      gans," IEEE Trans. Circuits Syst. Video Technol., pp. 1342­1350, 2021.
+[26] D. Liang, L. Li, M. Wei, S. Yang, L. Zhang, W. Yang, Y. Du,
+      and H. Zhou, "Semantically contrastive learning for low-light image
+      enhancement," CoRR, vol. abs/2112.06451, 2021.
+[27] Y. Liu, D. Jaw, S. Huang, and J. Hwang, "Desnownet: Context-aware
+      deep network for snow removal," TIP 2018, pp. 3064­3073, 2018.
+[28] S. Liu, L. Qi, H. Qin, J. Shi, and J. Jia, "Path aggregation network for
+      instance segmentation," in CVPR 2018, 2018, pp. 8759­8768.
+[29] G. Ghiasi, T. Lin, and Q. V. Le, "NAS-FPN: learning scalable feature
+      pyramid architecture for object detection," in CVPR 2019, 2019, pp.
+      7036­7045.
+[30] S. Liu, D. Huang, and Y. Wang, "Learning spatial fusion for single-shot
+      object detection," CoRR, vol. abs/1911.09516, 2019.
+[31] Y. Chen, H. Fan, B. Xu, Z. Yan, Y. Kalantidis, M. Rohrbach, S. Yan, and
+      J. Feng, "Drop an octave: Reducing spatial redundancy in convolutional
+      neural networks with octave convolution," in ICCV 2019, 2019, pp.
+      3434­3443.
+[32] S. Gao, Y. Tan, M. Cheng, C. Lu, Y. Chen, and S. Yan, "Highly efficient
+      salient object detection with 100k parameters," in ECCV 2020, 2020, pp.
+      702­721.
+[33] C. Wang, H. M. Liao, Y. Wu, P. Chen, J. Hsieh, and I. Yeh, "Cspnet: A
+      new backbone that can enhance learning capability of CNN," in CVPR
+      Workshops 2020, 2020, pp. 1571­1580.
+[34] X. Glorot, A. Bordes, and Y. Bengio, "Deep sparse rectifier neural
+      networks," Journal of Machine Learning Research, vol. 15, pp. 315­
+      323, 2011.
+[35] A. L. Maas, A. Y. Hannun, A. Y. Ng et al., "Rectifier nonlinearities
+      improve neural network acoustic models," in Proc. icml, vol. 30, no. 1.
+      Citeseer, 2013, p. 3.
+

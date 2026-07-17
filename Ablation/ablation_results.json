@@ -1,0 +1,446 @@
+{
+  "A0_baseline_singlephase": {
+    "variant": "baseline",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": true,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A0_baseline_singlephase/single/weights/best.pt",
+    "timestamp": "2026-06-11T18:01:39.542484",
+    "mAP50": 0.47877045169419696,
+    "mAP50-95": 0.27667824016357956,
+    "precision": 0.567030138470437,
+    "recall": 0.4821722632273346,
+    "per_class_AP50": {
+      "pedestrian": 0.5632664643526939,
+      "people": 0.42011282181594656,
+      "bicycle": 0.19989573665265647,
+      "car": 0.8599918110708651,
+      "van": 0.5299841754266683,
+      "truck": 0.4605856641137894,
+      "tricycle": 0.35068471142868674,
+      "awning-tricycle": 0.19375963860940437,
+      "bus": 0.6540203707020001,
+      "motor": 0.5554031227692584
+    },
+    "complexity": {
+      "params": 9431662,
+      "gflops": 21.57,
+      "params_millions": 9.432,
+      "imgsz": 640
+    },
+    "fps": 69.33
+  },
+  "A1_baseline_progressive": {
+    "variant": "baseline",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase4/weights/best.pt",
+    "timestamp": "2026-06-12T03:12:43.325191",
+    "mAP50": 0.4983658561153156,
+    "mAP50-95": 0.29607703690249887,
+    "precision": 0.6021472515673996,
+    "recall": 0.4956533720812903,
+    "per_class_AP50": {
+      "pedestrian": 0.59492519144624,
+      "people": 0.4560847414388019,
+      "bicycle": 0.24725262161928135,
+      "car": 0.8612493021527272,
+      "van": 0.5249324363811387,
+      "truck": 0.4632568984396351,
+      "tricycle": 0.3811406530601118,
+      "awning-tricycle": 0.18638687447011829,
+      "bus": 0.6800417968314596,
+      "motor": 0.5883880453136424
+    },
+    "complexity": {
+      "params": 9431662,
+      "gflops": 21.57,
+      "params_millions": 9.432,
+      "imgsz": 640
+    },
+    "fps": 69.67
+  },
+  "A2_meis": {
+    "variant": "meis",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A2_meis/phase4/weights/best.pt",
+    "timestamp": "2026-06-12T14:27:10.287180",
+    "mAP50": 0.4814922468159253,
+    "mAP50-95": 0.2796284746384843,
+    "precision": 0.5780126338490195,
+    "recall": 0.48497453784249406,
+    "per_class_AP50": {
+      "pedestrian": 0.5844121769770918,
+      "people": 0.4548340661975458,
+      "bicycle": 0.2404675677253262,
+      "car": 0.8543574983555129,
+      "van": 0.5141638107520686,
+      "truck": 0.4420829674597583,
+      "tricycle": 0.3258725707040937,
+      "awning-tricycle": 0.17153851765740247,
+      "bus": 0.6526194950594852,
+      "motor": 0.5745737972709675
+    },
+    "complexity": {
+      "params": 10801966,
+      "gflops": 25.71,
+      "params_millions": 10.802,
+      "imgsz": 640
+    },
+    "fps": 53.64
+  },
+  "A3_meis_sf": {
+    "variant": "meis_sf",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A3_meis_sf/phase4/weights/best.pt",
+    "timestamp": "2026-06-13T01:56:27.178456",
+    "mAP50": 0.4791331027316176,
+    "mAP50-95": 0.2796287346195217,
+    "precision": 0.5598883382005143,
+    "recall": 0.4922728949441299,
+    "per_class_AP50": {
+      "pedestrian": 0.5764287660522287,
+      "people": 0.4402167366727363,
+      "bicycle": 0.23605447175744854,
+      "car": 0.850484905484484,
+      "van": 0.5023173649153624,
+      "truck": 0.43901207972858236,
+      "tricycle": 0.3378456932293402,
+      "awning-tricycle": 0.1658150397040101,
+      "bus": 0.6656649211155723,
+      "motor": 0.577491048656411
+    },
+    "complexity": {
+      "params": 10093749,
+      "gflops": 24.57,
+      "params_millions": 10.094,
+      "imgsz": 640
+    },
+    "fps": 52.26
+  },
+  "A4_full": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/A4_full/phase4/weights/best.pt",
+    "timestamp": "2026-06-13T13:59:28.394039",
+    "mAP50": 0.4825395750331606,
+    "mAP50-95": 0.282099868631652,
+    "precision": 0.5928730111570008,
+    "recall": 0.4864539499694822,
+    "per_class_AP50": {
+      "pedestrian": 0.582677201826781,
+      "people": 0.4590034770135632,
+      "bicycle": 0.23998106125107177,
+      "car": 0.8545906372227787,
+      "van": 0.4943716574381809,
+      "truck": 0.42441504946719794,
+      "tricycle": 0.34081960039290254,
+      "awning-tricycle": 0.18239733187052945,
+      "bus": 0.6602715447506504,
+      "motor": 0.5868681890979499
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 45.97
+  },
+  "F_3level_full": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/F_3level_full/phase4/weights/best.pt",
+    "timestamp": "2026-06-14T01:54:46.485900",
+    "mAP50": 0.48442550936484513,
+    "mAP50-95": 0.2846925574597309,
+    "precision": 0.5774690016287437,
+    "recall": 0.488595644329935,
+    "per_class_AP50": {
+      "pedestrian": 0.5827812517222734,
+      "people": 0.45347308424857563,
+      "bicycle": 0.24377165810931695,
+      "car": 0.8545118825946046,
+      "van": 0.5140412806355441,
+      "truck": 0.4372960462917528,
+      "tricycle": 0.3548987414695699,
+      "awning-tricycle": 0.17493473376595753,
+      "bus": 0.634715528703139,
+      "motor": 0.5938308861077176
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 46.56
+  },
+  "F_2level_sequential": {
+    "variant": "sf_sequential",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/F_2level_sequential/phase4/weights/best.pt",
+    "timestamp": "2026-06-14T13:54:16.611057",
+    "mAP50": 0.4985221448027852,
+    "mAP50-95": 0.2955544943142494,
+    "precision": 0.5813600470538347,
+    "recall": 0.5038978803617302,
+    "per_class_AP50": {
+      "pedestrian": 0.5874313893695327,
+      "people": 0.4623391079560119,
+      "bicycle": 0.2571989458798014,
+      "car": 0.8576208814094037,
+      "van": 0.530237805126196,
+      "truck": 0.44985553051203786,
+      "tricycle": 0.38059875310125035,
+      "awning-tricycle": 0.20431950513013641,
+      "bus": 0.6660118711456381,
+      "motor": 0.5896076583978436
+    },
+    "complexity": {
+      "params": 10006418,
+      "gflops": 24.53,
+      "params_millions": 10.006,
+      "imgsz": 640
+    },
+    "fps": 46.8
+  },
+  "P_postfusion_full": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase4/weights/best.pt",
+    "timestamp": "2026-06-15T02:02:49.303024",
+    "mAP50": 0.48801080510914013,
+    "mAP50-95": 0.2874337644524728,
+    "precision": 0.5995548361564982,
+    "recall": 0.48923304070468215,
+    "per_class_AP50": {
+      "pedestrian": 0.5850185277729656,
+      "people": 0.4410978618346655,
+      "bicycle": 0.24302519422424984,
+      "car": 0.8533195932399844,
+      "van": 0.5181494240896471,
+      "truck": 0.4335799613136941,
+      "tricycle": 0.3445673604831815,
+      "awning-tricycle": 0.19881981323830367,
+      "bus": 0.6773830688629064,
+      "motor": 0.5851472460318029
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 45.98
+  },
+  "P_prefusion": {
+    "variant": "frm_prefusion",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase4/weights/best.pt",
+    "timestamp": "2026-06-15T14:30:37.368870",
+    "mAP50": 0.48019022959266133,
+    "mAP50-95": 0.281522597048399,
+    "precision": 0.572884667768792,
+    "recall": 0.4909432517953151,
+    "per_class_AP50": {
+      "pedestrian": 0.5831727722749913,
+      "people": 0.44760773968985157,
+      "bicycle": 0.24361644521773942,
+      "car": 0.851007277077142,
+      "van": 0.5054833741262479,
+      "truck": 0.42890189177149574,
+      "tricycle": 0.32948198058997047,
+      "awning-tricycle": 0.16023162766099064,
+      "bus": 0.6715997935908304,
+      "motor": 0.5807993939273541
+    },
+    "complexity": {
+      "params": 10144283,
+      "gflops": 24.65,
+      "params_millions": 10.144,
+      "imgsz": 640
+    },
+    "fps": 45.93
+  },
+  "Alpha_0.3": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.3,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.3/phase4/weights/best.pt",
+    "timestamp": "2026-06-16T02:42:09.706498",
+    "mAP50": 0.4790157918992811,
+    "mAP50-95": 0.28132816840177366,
+    "precision": 0.5948152497572763,
+    "recall": 0.481696482978227,
+    "per_class_AP50": {
+      "pedestrian": 0.579507490629835,
+      "people": 0.4404965145347043,
+      "bicycle": 0.2402976563700743,
+      "car": 0.8511505149636298,
+      "van": 0.49555871847705024,
+      "truck": 0.4292003024035181,
+      "tricycle": 0.35165601074212105,
+      "awning-tricycle": 0.189415256549637,
+      "bus": 0.6310079538790393,
+      "motor": 0.5818675004432023
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 46.56
+  },
+  "Alpha_0.5": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.5,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.5/phase4/weights/best.pt",
+    "timestamp": "2026-06-16T14:50:19.496786",
+    "mAP50": 0.48442550936484513,
+    "mAP50-95": 0.2846925574597309,
+    "precision": 0.5774690016287437,
+    "recall": 0.488595644329935,
+    "per_class_AP50": {
+      "pedestrian": 0.5827812517222734,
+      "people": 0.45347308424857563,
+      "bicycle": 0.24377165810931695,
+      "car": 0.8545118825946046,
+      "van": 0.5140412806355441,
+      "truck": 0.4372960462917528,
+      "tricycle": 0.3548987414695699,
+      "awning-tricycle": 0.17493473376595753,
+      "bus": 0.634715528703139,
+      "motor": 0.5938308861077176
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 46.52
+  },
+  "Alpha_0.7": {
+    "variant": "full",
+    "seed": 0,
+    "frm_alpha": 0.7,
+    "single_phase": false,
+    "phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/Alpha_0.7/phase4/weights/best.pt",
+    "timestamp": "2026-06-17T03:01:21.367006",
+    "mAP50": 0.48906406037713446,
+    "mAP50-95": 0.2862173077300906,
+    "precision": 0.5864915404382333,
+    "recall": 0.49504726214145967,
+    "per_class_AP50": {
+      "pedestrian": 0.5862045921890437,
+      "people": 0.4510904115665434,
+      "bicycle": 0.251666550793042,
+      "car": 0.8545576966420442,
+      "van": 0.508429426909264,
+      "truck": 0.44321501392345386,
+      "tricycle": 0.3620886246980157,
+      "awning-tricycle": 0.19997342408379476,
+      "bus": 0.6507008109463908,
+      "motor": 0.5827140520197525
+    },
+    "complexity": {
+      "params": 10138003,
+      "gflops": 24.64,
+      "params_millions": 10.138,
+      "imgsz": 640
+    },
+    "fps": 47.59
+  }
+}

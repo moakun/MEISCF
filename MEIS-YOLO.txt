@@ -1,0 +1,680 @@
+Intelligent and Converged Networks                                                   ISSN 2708-6240
+2025, 6(2): 151-163                                                 DOI: 10.23919/ICN.2025.0010
+
+ MEIS-YOLO: Improving YOLOv11 for efficient aerial object
+                   detection with lightweight design
+
+                                        Yicheng Liu, Jinsong Wu*, and Li Chen
+
+Abstract: With the advancement of aerial technologies like drones and satellites, deep learning-driven object
+detection has seen considerable improvements in the processing of aerial images. Nevertheless, conventional object
+detection algorithms continue to encounter performance limitations, particularly when handling complex
+backgrounds and small objects. To tackle this problem, this paper presents an enhanced You Only Look Once version
+11 (YOLOv11)-based model designed to boost both the detection accuracy and computational efficiency in aerial
+image processing, named MEIS-YOLO. The core innovation of the model lies in the introduction of a Multi-scale Edge
+Information Selection (MEIS) module, which selects key features highly relevant to the target detection task from multi-
+scale features, strengthening the representation of edge information and significantly improving detection
+performance under conditions of small targets and complex backgrounds. Additionally, the cross bi-level routing
+attention module, which incorporates the cross-stage partial structure, optimizes the attention mechanism, further
+enhancing the model's detection ability and computational efficiency. To further optimize multi-scale feature fusion,
+this paper introduces the asymptotic feature pyramid network. The experimental results show that MEIS-YOLO
+outperforms YOLOv11 on both VisDrone-DET2019 and DOTA datasets, especially on small target detection and
+complex backgrounds, with APs increasing by 4% and 8%, respectively. At the same time, floating point operations
+are reduced by 8%, and the number of parameters decreases by 25%, demonstrating its substantial potential for
+practical applications. This study provides an efficient, accurate, and lightweight solution for unmanned aerial vehicle
+object detection tasks.
+
+Key words: aerial imagery; object detection; attention mechanism; You Only Look Once version 11 (YOLOv11)
+
+1 Introduction                                                      making it ideal for large-scale object detection tasks.
+                                                                    However, due to the high flight altitude and relatively
+Object detection techniques have broad applications in              low resolution of satellites, capturing fine-grained
+aerial imagery, particularly in fields such as                      details can be challenging. In contrast, large aircraft-
+agricultural monitoring[1], disaster response[2], and               based aerial images are typically captured at lower
+urban management[3], where they play a crucial role.                flight altitudes, offering higher resolution and richer
+Satellite imagery provides extensive surface coverage,              details, which makes them more suitable for medium-
+                                                                    to large-scale object detection tasks, particularly in
+  Yicheng Liu and Li Chen are with School of Artificial             complex environments. Drones, with their exceptional
+  Intelligence, Guilin University of Electronic Technology, Guilin  maneuverability and flexibility, can capture rich image
+  541004, China. E-mail: 349524939@qq.com; 276680341@qq.            data from various angles and altitudes, providing a
+  com.                                                              diverse data source for object detection. However, the
+  Jinsong Wu is with School of Artificial Intelligence, Guilin      capture of aerial images is frequently limited by
+  University of Electronic Technology, Guilin 541004, China,        shifting viewpoints, intricate backgrounds, and targets
+  and Department of Electrical Engineering, University of Chile,    of diverse scales, all of which present considerable
+  Santiago 8370451, Chile. E-mail: wujs@ieee.org.
+* To whom correspondence should be addressed.
+  Manuscript received: 2025-02-23; revised: 2025-03-25;
+  accepted: 2025-04-16
+
+© All articles included in the journal are copyrighted to the ITU and TUP. This work is available under the CC BY-NC-ND 3.0 IGO license:
+                                                   https://creativecommons.org/licenses/by-nc-nd/3.0/igo/.
+   152                                                           Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+challenges for object detection tasks. In practical        such as image segmentation, classification, oriented
+applications, the ability to effectively address these     bounding box detection, and pose estimation,
+challenges and extract meaningful features from the        showcasing robust multitasking capabilities. However,
+cluttered information remains a pressing issue[4].         despite the significant advancements in overall
+                                                           performance, YOLOv11 still faces challenges in small
+  With the rapid advancement of deep learning              object detection. Small objects generally cover a
+techniques in computer vision, especially in object        limited region within an image and frequently suffer
+detection, deep learning models have shown                 from background interference, leading to insufficient
+exceptional performance and have become a dominant         feature representation and hindering the model's
+technology in this area[5]. The application of             effectiveness in identifying them.
+technologies such as Convolutional Neural Networks
+(CNNs)[6] has significantly improved object detection        From a computational efficiency perspective,
+accuracy and efficiency, greatly optimizing the            YOLOv11 effectively minimizes parameter count and
+processing of Unmanned Aerial Vehicle (UAV)                computational overhead by optimizing its network
+images. At the same time, drone-assisted object            architecture and integrating novel modules such as
+tracking systems integrated with edge computing[7] not     Cross-stage partial network with 3 blocks and 2 Kernel
+only reduce the communication costs of traditional         sizes (C3K2), Spatial Pyramid Pooling-Fast (SPPF),
+monitoring systems but also effectively decrease           and Cross stage Partial with Spatial Attention
+system latency, further enhancing the real-time            (C2PSA). These optimizations have enabled YOLOv11
+capabilities and reliability of object detection. Real-    to maintain high accuracy while significantly
+time object detection is crucial in many practical         improving detection speed and computational
+applications, especially in dynamic and emergency          efficiency. However, in certain high-load
+environments. For UAVs, the ability to quickly and         computational environments, YOLOv11 may still face
+accurately detect and track objects allows for timely      performance bottlenecks, particularly when Graphics
+responses and precise decision-making, such as target      Processing Unit (GPU) resources are limited.
+localization in disaster rescue operations or the          Therefore, addressing the limitations of YOLOv11 in
+immediate handling of abnormal events in traffic           small object detection and computational efficiency
+monitoring.                                                remains an important direction in current object
+                                                           detection research.
+  However, existing remote sensing datasets, such as
+those from UAVs and satellites, still have limitations in    This study seeks to tackle prevalent challenges in
+terms of scene complexity and diversity. These datasets    aerial imagery, including small target sizes and
+fail to comprehensively assess how well object             complex backgrounds, by developing an enhanced
+detection models perform in practical contexts,            object detection model based on YOLOv11: MEIS-
+particularly in terms of sustaining high accuracy in       YOLO. Objects in aerial images pose significant
+complex environments, an area that warrants further        challenges due to their small size and complex
+exploration[8]. Therefore, designing an efficient,         backgrounds, which constrain the effectiveness of
+lightweight, and high-performance object detection         traditional object detection algorithms. To address
+model tailored to the unique characteristics of aerial     these challenges, we introduce a series of innovative
+imagery has become a topic of significant research         enhancements that enable the model to sustain high
+value and broad application potential.                     efficiency while significantly improving its detection
+                                                           precision in complex scenarios.
+  You Only Look Once version 11 (YOLOv11)[9] has
+pushed the boundaries of object detection performance,       In this model, we introduce the Multiscale Edge
+offering notable improvements in accuracy, speed, and      Information Select (MEIS) module, which, in
+efficiency. This model is well-suited not only for object  combination with the advantages of Cross-Stage Partial
+detection but also for a range of computer vision tasks,   (CSP) networks architecture, acts as the backbone
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  153
+
+network, strengthening the model's ability to represent   observed in traditional FPNs. but also effectively
+features effectively. Additionally, the model             improves small object detection capabilities, while
+incorporates the CSP BiLevel Routing Attention            maintaining efficient computational performance. This
+(CBRA), an enhanced attention mechanism that              enables the model to sustain both high efficiency and
+markedly improves detection precision, especially in      accuracy in complex environments.
+complex backgrounds, by strengthening the model's
+target identification capability. Furthermore, We           (4) We propose MEIS-YOLO, a model that
+integrate the advanced Asymptotic Feature Pyramid         introduces innovative modules such as CSP-MEIS,
+Network (AFPN), which effectively minimizes               CPBRA, and AFPN, which enhance detection accuracy
+parameter count and floating-point operations, thereby    while maintaining efficient computational
+improving computational efficiency and enhancing the      performance. By combining CSP-MEIS as the
+model's suitability for UAV deployment.                   backbone network, the improved CPBRA attention
+                                                          mechanism, and the optimization of the AFPN-based
+  The key contributions of this study are as follows:     feature pyramid network, MEIS-YOLO demonstrates
+  (1) We introduce the MEIS module, which is              competitive performance on the VisDrone-DET2019[8]
+designed to efficiently extract key features highly       and Dataset for Object Detection in Aerial (DOTA)[10]
+relevant to the target task from multiscale edge          datasets, excelling particularly in detecting small
+information. By combining MEIS with the concept of        objects and handling complex backgrounds. Compared
+CSP networks, we designed an improved backbone            to existing mainstream real-time object detection
+network--CSP-MEIS. Compared to traditional                models, MEIS-YOLO shows significant advantages in
+mainstream backbone networks, CSP-MEIS                    both detection accuracy and computational efficiency,
+demonstrates significant advantages in UAV image          especially in UAV aerial imagery with large-scale
+object detection tasks. By incorporating multiscale       differences and dynamic backgrounds, demonstrating
+edge information selection and focusing on task-          excellent robustness and real-time detection
+relevant features, CSP-MEIS is more effective at          capabilities.
+handling complex background interference and small
+object detection issues, leading to a substantial         2 Related work
+enhancement in detection accuracy. Compared to
+existing backbone networks, CSP-MEIS can provide          2.1 Introduction to object detection
+more accurate detection results while maintaining high
+efficiency, especially in scenarios with large target-    Before 2012, traditional object detection methods
+scale differences and complex backgrounds in aerial       relied mainly on manually designed feature extractors.
+imagery, where it shows a strong advantage.               Early representative methods include the Haar cascade
+  (2) By combining the CSP architecture, positional       classifier[11, 12], which implemented face detection
+encoding, and Bi-level Routing Attention (BRA), we        using sliding windows and Haar features, and
+designed the CBRA module. In this module, the             Histogram of Oriented Gradients (HOG) combined
+introduction of the attention mechanism not only          with Support Vector Machine (SVM)[13], which
+enhances detection performance but also contributes       performed pedestrian detection using gradient features
+significantly to reducing computational load, thanks to   and a classifier. These methods achieved some success
+the CSP structure. This is particularly beneficial in     at the time, but due to their reliance on handcrafted
+terms of model lightweighting, further improving both     features, they had weak generalization ability,
+computational efficiency and detection capability.        particularly when handling complex backgrounds,
+  (3) We introduced the AFPN based on the traditional     target deformation, and small object detection. As a
+Feature Pyramid Network (FPN). AFPN not only              result, they faced difficulties in adapting to
+mitigates information loss in multi-scale feature fusion  increasingly complex and dynamic actual application
+                                                          environments.
+   154                                                           Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+  With the rise of deep learning, particularly following   based object detection networks, the development of
+the breakthrough of AlexNet[6] in the 2012 ImageNet        attention mechanisms[17] has led to the integration of
+competition, deep learning quickly emerged as the          transformer structures into object detection networks.
+dominant approach in computer vision. Two-stage            This approach redefines the problem as a direct
+detectors follow a "region proposal + classification and   prediction task, with representative detectors including
+regression" pipeline for object detection. The             DETR[18], ViT-FRCNN[19], mask DINO[20], BiADT[21],
+fundamental concept involves generating candidate          and ViT-CoMer[22]. This innovative method eliminates
+regions (region proposals) first, followed by classifying  the need for manual region proposals, anchors, or
+and refining the bounding boxes of these candidates.       window operations, while achieving state-of-the-art
+The Region-based Convolutional Neural Network (R-          accuracy. However, current transformer-based
+CNN) series represents the two-stage detectors, with R-    detection methods tend to be more expensive and
+CNN[5] being the first to introduce Convolutional          struggle to detect small objects, which are
+Neural Networks (CNNs) into object detection,              computationally costly and difficult to detect.
+replacing traditional hand-crafted features. The           Therefore, in terms of computational efficiency, using
+pipeline involves using selective search to generate       CNNs for object detection remains more advantageous,
+around 2000 candidate regions, normalizing each            especially when many small objects need to be
+candidate, and inputting them into a CNN (such as          detected.
+AlexNet) to extract features, followed by classification
+and bounding box correction via an SVM classifier and        Although two-stage detectors offer significant
+linear regressor. However, R-CNN suffers from              advantages in detection accuracy and are suitable for
+computational redundancy, leading to slow training and     scenarios with lower real-time requirements, such as
+inference speeds (47 seconds per image). Fast R-           medical image analysis, their computational
+CNN[14] introduced Region of Interest (ROI) pooling,       complexity remains high. Deploying these models on
+which aligns candidate regions with CNN feature maps       resource-limited devices, such as drones and mobile
+to facilitate feature sharing, reducing redundant          devices, remains a significant challenge.
+computations. It also supports end-to-end optimization
+using a multi-objective loss function. As a result, both   2.2 Introduction to YOLO algorithm
+inference speed (reaching 0.3 seconds per image) and
+accuracy (VOC07 Average Precision (AP) improved            Single-stage detectors approach object detection as a
+from 58.5% to 70.0%) showed significant                    dense prediction task, directly estimating object classes
+enhancements. Faster R-CNN[15] enabling end-to-end         and locations from feature maps, which significantly
+training while maintaining high detection accuracy and     improves inference speed. However, in the early
+significantly improving detection speed, making the        stages, their accuracy is slightly lower than that of two-
+region proposal process nearly cost-free in terms of       stage methods. The YOLO series, as a representative of
+computation. Its backbone network extracts global          single-stage detectors, introduced the core idea of
+image features, and the RPN utilizes a sliding window      dividing the image into an S × S grid, where each grid
+to estimate objectness scores and location offsets for     predicts B bounding boxes along with their confidence
+candidate boxes, which are subsequently processed by       scores and class probabilities. YOLOv1[23] achieved
+the classification and regression heads. The               real-time detection with an inference speed of 45 FPS,
+introduction of faster R-CNN significantly improved        but due to grid division limitations, its performance in
+detection speed (up to 5 Frames Per Second (FPS)) and      small object detection was weak, often resulting in
+further improved accuracy (VOC07[16] AP reached            missed detections. YOLOv3[24] further improved
+78.8%).                                                    performance by adopting multiscale predictions, using
+                                                           feature maps at three different resolutions (13 × 13,
+  Apart from anchor-based and anchor-free CNN-             26 × 26, and 52 × 52) to detect objects of varying sizes.
+                                                           It also introduced Darknet-53 as the backbone network,
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  155
+
+incorporating residual connections to enhance feature     improved. However, real-time object detection still
+extraction capabilities and optimized bounding box        requires balancing efficiency and accuracy, and large-
+regression with nine predefined anchor boxes.             scale accurate datasets are necessary for training.
+YOLOv3 achieved an AP of 33.0% on the COCO data           Research has shown that models like YOLO and Faster
+set[25] while maintaining an inference speed of 55 FPS.   R-CNN have achieved good results in aerial image
+YOLOv5, YOLOv7[26], and YOLOv8[9] continued to            object detection, but there are still limitations,
+optimize in several directions, including adaptive        especially when handling small objects and complex
+anchor boxes, data augmentation strategies (such as       backgrounds.
+Mosaic and MixUp), and lightweight designs (e.g.,
+using depthwise separable convolutions and Ghost          3 Methodology
+modules). Moreover, the YOLO series has provided
+flexibility through model scaling, offering different     Figure 1 illustrates the architecture of the proposed
+versions to meet various requirements (e.g., YOLOv8       MEIS-YOLO model. This model improves the
+provides n, s, m, l, and x versions). YOLOv9[27]          performance of YOLOv11 for aerial object detection
+introduced Programable Gradient Information (PGI)         tasks while reducing both the number of parameters
+and the Generalized Efficient Layer Aggregate             and computational complexity. The specific details are
+Network (GELAN), which improved performance in            as follows.
+both lightweight and large models, addressing the
+information bottleneck problem. YOLOv10[28] was           3.1 MEIS-YOLO architecture
+influenced by RT-DETR[29] and achieved end-to-end
+training without NMS. In addition, it introduced a        The structure of MEIS-YOLO consists of the
+Partial Self-Attention (PSA) module. The latest YOLO      backbone, neck, and head. The backbone largely
+version, YOLOv11[9], incorporated a more efficient        follows the architecture of YOLOv11. The CBS block
+architecture, including the C3K2 module and the           is composed of a convolutional module, a batch
+C2PSA attention mechanism, an improvement upon            normalization module, and a SiLu activation function.
+PSA. YOLOv11 was designed to improve small object         The convolutional module employs a 3 × 3 convolution
+detection and improve accuracy while maintaining          with a stride of 2, which reduces the feature map size
+real-time inference speed.                                by half after each operation. After passing through the
+                                                          MEIS, SPPF, and CBRA modules, the backbone
+2.3 Aerial image object detection                         features, denoted as C3, C4, and C5, are extracted and
+                                                          forwarded to the neck. The neck section adopts the
+Performing object detection in aerial imagery in real     AFPN structure to address the issue of multi-resolution
+time poses a significant challenge that involves both     feature fusion in object detection tasks. After
+object localization and classification. It is widely      processing the input features C3, C4, and C5, the neck
+applied in areas such as surveillance, analysis, and      outputs P3, P4, and P5. The head follows the baseline
+disaster response[30]. This task faces numerous           design, processing P3, P4, and P5 to produce
+challenges, including occlusion, complex backgrounds,     predictions for bounding boxes and class labels.
+irregular poses, and the detection of small-scale
+objects. Moreover, the bird's-eye perspective of aerial   3.2 MEIS module
+images complicates feature extraction and may result in
+increased false positives. Traditional detection          We propose a MEIS module, designed to efficiently
+methods, such as sliding window-based multi-template      select key features highly relevant to the object
+approaches and image pyramids, have made some             detection task from multi-scale edge information. The
+progress but still suffer from inefficiencies. In recent  specific structure is shown in Fig. 2. The MEIS module
+years, detection accuracy and speed have significantly    follows the overall structure of C3K2, while
+                                                          incorporating several MEIS_block units as
+                                                          improvements.
+156                                                       Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+        CBS                CBS         Conv                 BN         SiLu
+        CBS                MEIS        C3K2               MEIS_block
+        MEIS
+        CBS                  C3        Fusion             Fusion       P3
+        MEIS                 C4        Fusion             Fusion
+        CBS                                               Fusion       P4    Head
+        MEIS               CBRA          C5
+        CBS                             Neck               BRA         P5
+        MEIS                            CSP                                                 Head
+       SPPF
+       CBRA
+
+     Backbone
+
+Fig. 1 Diagram of the overall architecture of the MEIS model. CBS: Convolution-BatchNorm-Silu; Conv: Convolutional
+Layer; BN: Batch Normalization; SiLu: Sigmoid-weighted Linear unit.
+
+                    Split        Conv        AAP          n                   AP
+         Conv                                Conv                 AAP        Conv
+                                             DWC
+     MEIS_block                               EE                 Conv
+      n                                                          DWC
+
+     MEIS_block                                                    EE
+
+        Concat                         Concat
+
+                                               DSM
+
+     MEIS                              MEIS_block                            EE
+
+Fig. 2 Diagram of the specific structure of the MEIS module. n represents the number of distinct scales (or feature levels)
+used in the multi-scale processing.
+
+  The MEIS_block combines multi-scale feature             edge enhancement. The processing flow for the feature
+extraction, edge information enhancement, and             map within the MEIS module is described as follows:
+convolutional operations. Its primary goal is to extract
+features from different scales, emphasize edge              Multi-scale Feature Extraction (MFE): Given the
+information, and integrate these multi-scale features.    input x  RB×C×H×W , multi-scale pooling operations are
+Finally, an enhanced feature map is output through        performed through several AdaptiveAvgPool layers,
+convolutional layers. This module demonstrates strong     with the scales defined as scale = {scale1, scale2, . . . ,
+representational power based on feature extraction and    scalen}, extracting local information at different sizes,
+                                                          which helps capture multi-level features of the image.
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  157
+
+A 1 × 1 convolution is then employed to reduce the            edgeprocessed = (Conv(edge))                      (5)
+channel dimension, thereby lowering the computational
+cost for subsequent convolutions. The feature map is            (4) The enhanced output is obtained by adding the
+further processed with depthwise separable                    processed edge information to the original input feature
+convolutions, allowing for efficient extraction of            map.
+spatial features.
+                                                              xenhanced = x + edgeprocessed                     (6)
+
+xscale = AdaptiveAvgPool(x, outputsize = scale) (1)             Feature fusion and Dual-domain Selection
+                                                              Mechanism (DSM): Interpolation is used to align the
+              xconv = DWConv(Conv(xscale))        (2)         features extracted at different scales to a uniform scale,
+                                                              then concatenated, and finally fused into a unified
+where xscale represents the feature map obtained after        feature representation using convolution layers. By
+applying multi-scale adaptive average pooling to the          enhancing the perception of multi-scale features, this
+                                                              process improves the model's capability. On this basis,
+input x; AdaptiveAvgPool(·) represents an operation           we introduce an attention mechanism, the DSM[31],
+that performs average pooling with dynamically                which focuses on more important regions of the image.
+                                                              This mechanism adaptively selects features with higher
+adjusted output sizes to capture multi-scale features;        task relevance from the multi-scale features by
+                                                              focusing on critical areas such as complex edges and
+output_size represents the target spatial dimensions          high-frequency signal regions, thereby significantly
+(e.g., scale1, scale2, . . . , scalen) for adaptive pooling;  improving the precision of feature selection and the
+scale represents a predefined set of pooling sizes (e.g.,     overall model performance.
+scale1, scale2, . . . , scalen) used for multi-scale feature
+extraction; xconv represents the feature map processed
+by depthwise separable convolution after channel
+
+reduction via 1 × 1 convolution; DWConv(·) represents
+
+the depthwise convolution; Conv(·) represents
+
+convolution.                                                  xfused = DSM(Concat(Conv(x), xenhanced))          (7)
+
+Edge Enhancement (EE): The EE module is                       3.3 CBRA
+
+specifically designed to extract edge information,            The CBRA module in this paper integrates the C2PSA
+enhancing the network's sensitivity to edges. The             structure with BRA[32] to enhance attention efficiency.
+specific process is as follows:                               BRA dynamically routes each query to focus only on
+                                                              the most relevant key-value pairs, reducing
+  (1) The input feature map is processed with AvgPool         computation and memory costs. It operates in two
+                                                              stages: coarse-grained routing, where a region-level
+to extract its smoothed features, representing low-           affinity graph filters out irrelevant key-value pairs,
+                                                              retaining only the top k most relevant regions; fine-
+frequency information.                                        grained token-to-token attention, which computes
+                                                              attention only within the selected regions, improving
+              edgelow = AvgPool(xconv)            (3)         efficiency. This two-stage routing minimizes
+                                                              computational complexity through sparse matrix
+where edgelow represents the low-frequency                    operations and key-value aggregation, ensuring
+(smoothed) features extracted via average pooling from        resources are concentrated on critical information.
+                                                              Additionally, BRA's query-adaptive sparsity
+xconv , and AvgPool(xconv) represents the average             dynamically adjusts attention based on semantic
+pooling operation applied to xconv to suppress high-          regions, balancing efficiency and long-range
+frequency details and highlight structural information.       dependency capture. By incorporating BRA, CBRA
+                                                              improves both computational efficiency and feature
+(2) The enhanced edge information (high-frequency
+
+information) is obtained by subtracting the smoothed
+
+feature map from the original input feature map.
+
+              edge = x - edgelow                  (4)
+
+(3) The enhanced edge information is further
+
+processed using convolution and activation functions.
+   158                                                          Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+representation in complex scenarios.                      resolution of approximately 2000 × 1500 pixels. The
+                                                          dataset provides annotations for ten object categories
+3.4 AFPN                                                  such as pedestrians, cars, etc, which are active in cities
+                                                          or rural areas.
+To tackle the challenge of multiscale feature fusion in
+object detection tasks, we incorporate the AFPN[33] in      Additionally, this paper incorporates the DOTA
+the neck of the model. The fundamental principle of       dataset[10] for comparative experiments to evaluate the
+AFPN is to progressively integrate features across        model's generalizability. The dataset consists of 2806
+different levels. Initially, it merges two low-level      high-resolution aerial images, each approximately
+features and then sequentially incorporates higher-level  4000 × 4000 pixels in size, encompassing 15 object
+features, culminating in the fusion of the highest-level  categories (such as airplanes, ships, vehicles, bridges,
+features. This hierarchical approach mitigates semantic   etc.), with a total of 188 282 annotated instances. Most
+gaps between non-adjacent levels.                         of its images come from satellite data.
+
+  During the fusion process, AFPN employs adaptive        4.3 Evaluation metric
+spatial fusion, which assigns varying spatial weights to
+features at different levels, effectively reducing        We utilize the standard COCO Average Precision (AP)
+information conflicts across scales. Specifically, this   metric[25] with single-scale images as input,
+fusion strategy combines features from multiple levels    implemented through Pycocotools, in order to evaluate
+through weighted summation, ensuring that the             the proposed method's effectiveness. In this study, we
+integrated features preserve essential information.       adopt the COCO AP metric as the primary evaluation
+                                                          criterion.
+  The detailed architecture of the proposed model,
+incorporating AFPN (Asymptotic Feature Pyramid              AP: AP represents the average precision scores
+Network) as the neck, is illustrated in Fig. 1. The       calculated across multiple Intersection-over-Union
+fusion process consists of ASF, C3K2, and an adaptive     (IoU) thresholds from 0.50 to 0.95 in 0.05 increments.
+scale alignment module, which is used for multiscale or
+multilevel feature fusion. Designed for automatic           AP50: Average precision calculated at IoU threshold
+learning of weighting factors among different feature     of 0.50, measuring detection accuracy for loosely
+levels, this module enhances model capability in          matched bounding boxes.
+utilizing multilevel information.
+                                                            APs: Average precision for small objects (area < 323
+4 Experiment                                              pixels), evaluating model performance on detecting
+                                                          small-scale targets.
+4.1 Implementation detail
+                                                            APm: Average precision for medium objects (323 
+Our experiments use a single NVIDIA RTX 3090 GPU          area < 962 pixels), assessing detection capability for
+with a batch size of 16, and the rest of the strategies   mid-sized objects.
+and hyperparameters follow the baseline. All training
+uses no pre-trained weights, and the input image size       APl: Average precision for large objects (area  962
+for training and validation is 640 × 640 pixels. We use   pixels), measuring accuracy in detecting large-scale
+the original data for comparison and ablation             targets.
+experiments without any pre-processing.
+                                                          4.4 Ablation study
+4.2 Dataset
+                                                          In this section, we perform ablation experiments on
+In this paper, the VisDrone-DET2019 dataset is            each module using the VisDrone-DET2019 dataset.
+selected for ablation and comparative experiments.        Subsequently, As shown in Table 1, we integrate the
+VisDrone-DET2019[8] contains 8629 images. These           modules and analyzed them individually to evaluate the
+images are taken by drones at different altitudes with a  impact of every part. In general, the improvements
+                                                          made to YOLOv11 in this article result in performance
+                                                          gains in all metrics: AP improves by 5%, AP50
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  159
+
+                  Table 1 Ablation study of each proposed componen of MEIS-YOLO.
+
+Baseline MEIS AFPN BRA AP (%) AP50 (%) APs (%) APm (%) APl (%) FLOPs (×109)                   Number of parameters (×106)
+                                                                                                            20.04
+          ×  ×    × 19.9 34.6 10.2 30.1 39.7                                         67.7                   19.73
+                                                                                                            14.98
+             ×    × 20.5 35.7 10.4 31.1 43.0                                         66.4                   15.04
+
+                  × 20.7 35.8 10.5 32.2 45.3                                         62.1
+
+                   20.9 36.0 10.6 32.4 46.7                                          62.0
+
+Note:  indicates the inclusion of this model/module, while × denotes its exclusion.
+
+improves by 4%, APs improves by 4%, APm improves              that the module not only improves the detection
+by 7%, APl improves by 17%, Floating Point                    accuracy but also efficiently optimizes the
+Operations per Second (FLOPs) reduces by 8%, and              computational resource utilization.
+the number of parameters reduces by 25%. Below is a
+detailed analysis of each module.                               The CBRA module combines the C2PSA framework
+                                                              with the introduction of BRA. Thanks to its CSP
+  Table 2 presents the performance of MFE, EE, and            design and excellent attention mechanism, it
+DSM in the MEIS module. As shown, after                       significantly enhances the model's performance.
+incorporating MFE, the model's AP significantly               Building on the MEIS and AFPN modules, the addition
+improves by 2%. The addition of EE and DSM also               of CBRA results in a 4% improvement in small object
+lead to varying degrees of improvement. Although              (APs) detection. More importantly, the inclusion of
+these modules individually contribute to increase the         CBRA adds almost no additional model size, further
+detection accuracy, the integrated MEIS module, which         demonstrating its advantage in improving model
+integrates all three components, demonstrating the            performance while maintaining computational
+highest accuracy, further confirming the effectiveness        efficiency.
+and advantages of the MEIS module.
+                                                                To further examine the effect of integrating the
+  Compared to the baseline model, after adding MEIS,          CBRA module into our model, we use Grad-CAM[34]
+all AP metrics show significant improvements, with an         to generate heatmaps for two versions of the model,
+increase of more than 3% in each case. In particular,         one with the CBRA module and one without. In these
+the AP large metric shows an improvement of 8%.               heatmaps, redder regions represent higher activation
+Additionally, the MEIS module not only improves the           values, while bluer regions indicate lower activation
+model accuracy but also optimizes the computational           values. Higher activation values suggest that the model
+efficiency, with FLOPs and parameter count decreasing         is paying more attention to that region. As illustrated in
+by 1.9% and 1.5%, respectively, demonstrating a good          Fig. 3, Fig. 3a represents the original image, Fig. 3b
+balance between performance and computational                 shows the heatmap generated by the baseline model,
+overhead offered by this module.                              and Fig. 3c demonstrates the heatmap produced after
+                                                              incorporating the CBRA module. Red boxes are used
+  After incorporating AFPN, the model shows an                to highlight the detected object regions, emphasizing
+improvement of more than 3% in all AP metrics. At the         the areas of interest. Figure 3 shows that after adding
+same time, AFPN significantly reduces computational           the CBRA module, the color within the red box
+complexity, with FLOPs and number of parameters               becomes more concentrated around the object, while
+decreasing by 6% and 23%, respectively. This indicates
+
+                  Table 2 Ablation study of the MEIS module and its components.
+
+Baseline     MFE  EE  DSM  AP (%)                             AP50 (%)               APs (%)  APm (%)           APl (%)
+                                                                                       10.2     30.1              39.7
+             ×    ×   ×                                 19.9  34.6                     10.3     30.4              40.1
+                                                                                       10.3     30.6              41.6
+                  ×   ×                                 20.3  35.0                     10.4     31.1              43.0
+
+                      ×                                 20.4  35.3
+
+                                                        20.5  35.7
+
+Note:  indicates the inclusion of this model/module, while × denotes its exclusion.
+160                                                       Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+     (a) Original image              (b) CBRA not added                       (c) CBRA added
+
+Fig. 3 Visualization of feature maps generated by models with and without the CBRA module added. Red boxes highlight the
+detected object regions, emphasizing the areas of interest.
+
+the attention to the background decreases significantly.  recently proposed real-time object detection state-of-
+This suggests that the CBRA module improves the           the-art models. The main reasons for choosing these
+model's capability to localize targets more precisely     models are the availability of their code and the use of
+while minimizing attention to the background.             the same public datasets as those used in our study.
+Therefore, the CBRA module effectively increases the
+model's focus on the target and decreases background        The results of this comparison are shown in the
+interference.                                             Table 3. The following models are compared: the
+                                                          classical object detection models Faster-RCNN[15],
+4.5 Comparison to other methods                           RetinaNet[35], Cascade-RCNN[36], and TOOD[37]; and
+                                                          the real-time object detection models YOLOv5[9],
+Comparative experiments are conducted using               YOLOv6[38], YOLOv8[9], YOLOv9[27], YOLOv10[28],
+VisDrone-DET2019 to assess model performance in           YOLOv11[9], and RT-DETR[29].
+UAV image detection. We select a range of models for
+comparison, including classic models and several            For the VisDrone-DET2019 dataset, Table 3 shows
+                                                          that our detection model achieves 36% in AP50, which
+
+     Table 3 Result of MEIS-YOLO and other methods on VisDrone-DET2019 test set.
+
+        Model     AP (%) AP50 (%) APs (%) APm (%) APl (%)       FLOPs (×109)  Number of parameters (×106)
+ Faster-RCNN-R50                                                    208.00                  41.39
+                  19.4 32.9    9.5   30.9 42.9                      210.00                  36.52
+   RetinaNet-R50                                                    236.00                  69.29
+Cascade-RCNN-R50  16.4 27.6    6.0   27.4 42.7                      199.00                  32.04
+                                                                     64.00                  25.05
+      TOOD r50    19.7 32.6    9.9   30.9 40.6                       51.98                 161.00
+     YOLOv5m                                                         78.70                  25.84
+     YOLOv6m      20.5   34.0  10.9  31.0                 40.4       76.50                  20.00
+     YOLOv8m                                                         60.00                  20.00
+     YOLOv9m      18.8 32.8    8.9   29.4 40.5                       63.50                  16.46
+   RT-DETR-r18                                                       67.70                  20.04
+     YOLOv10m     18.5 31.7    8.2   29.0 47.8                       62.00                  15.04
+     YOLOv11m
+MEIS-YOLO (ours)  19.7 34.1    9.4   30.7 44.0
+
+                  19.6 34.0    9.1   30.5 44.5
+
+                  20.3   35.5  11.3  29.6                 40.3
+
+                  18.9 33.0    8.9   29.2 40.0
+
+                  19.9   34.6  10.2  30.1                 39.7
+
+                  20.9   36.0  10.6  32.4                 46.7
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  161
+
+is a 4% improvement over YOLOv11. Although our         performance gap between our algorithm and the
+APs is 6% and 9% lower than TOOD and RT-DETR,          baseline, we visualize the prediction results of both
+respectively, our model overall achieves higher        models on the VisDrone-DET2019 test set, as shown in
+accuracy and is more lightweight in terms of model     Fig. 4. Figure 4a represents the original image, while
+size. Specifically, our model's FLOPs are 69% lower    Figs. 4b and 4c depict the predictions of the baseline
+than TOOD, and the parameter count is 25% lower        and the proposed model, respectively. For clearer
+than RT-DETR.                                          visualization, object categories and confidence scores
+                                                       are omitted from the detection results. As observed, our
+  Additionally, on the DOTA dataset, our detection     method successfully identifies objects that the baseline
+model also demonstrates significant advantages         model fails to detect, particularly those near occluded
+compared to other mainstream real-time object          backgrounds or captured from unconventional angles.
+detection models. As shown in Table 4, although        This confirms that our model outperforms the baseline
+MEIS-YOLO shows a slight decrease in APm and APl       in visual detection.
+compared to baseline, with reductions of 2% and 11%,
+respectively, AP50 increases by 1%, and APs improves   5 Conclusion
+by 8%. This suggests that our model attains better
+overall accuracy and outperforms in identifying small  This paper proposes an improved object detection
+objects, which is particularly important for aerial    model based on YOLOv11, MEIS-YOLO, aimed at
+imagery.                                               addressing the challenges faced by object detection in
+                                                       aerial images, particularly for small object detection
+4.6 Visualization                                      and cluttered backgrounds. By introducing the MEIS
+
+To provide a more intuitive comparison of the
+
+                  Table 4 Result of MEIS-YOLO and other methods on DOTA validation set.
+
+        Model     AP (%) AP50 (%) APs (%) APm (%) APl (%) FLOPs (×109)     Number of parameters (×106)
+     YOLOv5m                                                                             25.53
+     YOLOv6m      41.3  67.8  21.8  38.3               45.7  64.0
+     YOLOv8m
+     YOLOv9m      40.0  65.6  19.9  38.4               42.4  161.2                       51.98
+   RT-DETR-r18
+    YOLOv10m      41.0  66.4  22.7  38.2               41.5  7807.0                      25.84
+    YOLOv11m
+MEIS-YOLO (ours)  42.8  67.9  22.0  39.8               43.8  76.6                        20.02
+
+                  41.7  67.4  22.9  40.0               43.1  60.0                        20.00
+                                                                                         16.46
+                  42.9  67.7  23.4  39.0               44.2  63.5                        20.04
+                                                                                         15.05
+                  43.1  69.7  23.0  40.3               47.9  67.7
+
+                  43.1  70.5  24.9  39.4               42.3  62.1
+
+(a) Original image                                 (b) Baseline            (c) MEIS-YOLO
+                        Fig. 4 Visualization of object detection results.
+   162                                                                     Intelligent and Converged Networks, 2025, 6(2): 151-163
+
+module, an improved attention mechanism (CBRA),                             Srivastava, A. Saif, and V. O. Nyangaresi, UAV
+and the AFPN, this study significantly enhances                             computing-assisted search and rescue mission framework
+detection accuracy and effectively reduces                                  for disaster and harsh environment mitigation, Drones,
+computational resource consumption. Experimental                            vol. 6, no. 7, p. 154, 2022.
+results show that MEIS-YOLO outperforms YOLOv11                      [3] J. Feng, J. Wang, and R. Qin, Lightweight detection
+on the VisDrone-DET2019 and DOTA datasets,                                  network for arbitrary-oriented vehicles in UAV imagery
+especially in small object detection and under complex                      via precise positional information encoding and
+backgrounds, while achieving significant optimization                       bidirectional feature fusion, Int. J. Remote Sens., vol. 44,
+in computational efficiency, demonstrating strong                           no. 15, pp. 4529­4558, 2023.
+potential for real-world applications.                               [4] Y. Zhang, J. Liu, and W. Shen, A review of ensemble
+                                                                            learning algorithms used in remote sensing applications,
+  Although this study achieves promising results in                         Appl. Sci., vol. 12, no. 17, p. 8654, 2022.
+improving accuracy and computational efficiency,                     [5] R. Girshick, J. Donahue, T. Darrell, and J. Malik, Region-
+there will still be room for further improvement, such                      based convolutional networks for accurate object detection
+as optimizing the neck design and loss function. Future                     and segmentation, IEEE Trans. Pattern Anal. Mach.
+research can explore more advanced feature fusion                           Intell., vol. 38, no. 1, pp. 142­158, 2016.
+methods to further improve detection accuracy,                       [6] A. Krizhevsky, I. Sutskever, and G. E. Hinton, ImageNet
+particularly in more complex environments.                                  classification with deep convolutional neural networks, in
+Furthermore, optimizing the model architecture to                           Proc. 26th Int. Conf. Neural Information Processing
+achieve better real-time detection performance,                             Systems, Lake Tahoe, NV, USA, 2012, pp. 1097­1105.
+considering the hardware constraints of UAVs, is                     [7] Y. Liu, C. Zhu, X. Deng, P. Guan, Z. Wan, J. Luo, E. Liu,
+another crucial direction. As UAV technology                                and H. Zhang, UAV-aided urban target tracking system
+continues to advance and application scenarios                              based on edge computing, arXiv preprint arXiv:
+diversify, this study provides an effective and                             1902.00837, 2019.
+lightweight solution for UAV image object detection                  [8] D. Du, P. Zhu, L. Wen, X. Bian, H. Lin, Q. Hu, T. Peng, J.
+with wide application prospects.                                            Zheng, X. Wang, Y. Zhang, et al. , VisDrone-DET2019:
+                                                                            The vision meets drone object detection in image
+Acknowledgment                                                              challenge results, in Proc. IEEE/CVF Int. Conf. Computer
+                                                                            Vision Workshops, Seoul, Republic of Korea, 2019, pp.
+This paper was supported in part by the China Guangxi                       213­226.
+Science and Technology Plan Project (No.                             [9] J. Glenn, A. Chaurasia, and J. Qiu, Ultralytics YOLO
+AD23026096), the Chile CONICYT FONDECYT                                     (version 8.0.0), https://github.com/ultralytics/ultralytics,
+Regular (No. 1181809), and the Chile CONICYT                                2023.
+FONDEF (No. ID16I10466).                                             [10] G. S. Xia, X. Bai, J. Ding, Z. Zhu, S. Belongie, J. Luo, M.
+                                                                            Datcu, M. Pelillo, and L. Zhang, DOTA: A large-scale
+Conflict of Interest                                                        dataset for object detection in aerial images, in Proc.
+                                                                            IEEE/CVF Conf. Computer Vision and Pattern
+The authors declare no conflict of interest.                                Recognition, Salt Lake City, UT, USA, 2018, pp.
+                                                                            3974­3983.
+References                                                           [11] P. Viola and M. Jones, Rapid object detection using a
+                                                                            boosted cascade of simple features, in Proc. IEEE
+[1] X. Yang, A. M. Smith, R. S. Bourchier, K. Hodge, D.                     Computer Society Conf. Computer Vision and Pattern
+       Ostrander, and B. Houston, Mapping flowering leafy                   Recognition, Kauai, HI, USA, 2001, pp. 511­518.
+       spurge infestations in a heterogeneous landscape using        [12] P. Viola and M. J. Jones, Robust real-time face detection,
+       unmanned aerial vehicle Red-Green-Blue images and a                  Int. J. Comput. Vis., vol. 57, no. 2, pp. 137­154, 2004.
+       hybrid classification method, Int. J. Remote Sens., vol. 42,  [13] N. Dalal and B. Triggs, Histograms of oriented gradients
+       no. 23, pp. 8930­8951, 2021.                                         for human detection, in Proc. IEEE Computer Society
+                                                                            Conf. Computer Vision and Pattern Recognition, San
+[2] S. H. Alsamhi, A. V. Shvetsov, S. Kumar, S. V.                          Diego, CA, USA, 2005, pp. 886­893.
+       Shvetsova, M. A. Alhartomi, A. Hawbani, N. S. Rajput, S.      [14] R. Girshick, Fast R-CNN, in Proc. IEEE Int. Conf.
+                                                                            Computer Vision, Santiago, Chile, 2015, pp. 1440­1448.
+                                                                     [15] S. Ren, K. He, R. Girshick, and J. Sun, Faster R-CNN:
+                                                                            Towards real-time object detection with region proposal
+                                                                            networks, IEEE Trans. Pattern Anal. Mach. Intell., vol.
+Yicheng Liu et al.: MEIS-YOLO: Improving YOLOv11 for efficient aerial object detection with lightweight design  163
+
+       39, no. 6, pp. 1137­1149, 2017.                                     Learning what you want to learn using programmable
+[16] M. Everingham, L. Van Gool, C. K. I. Williams, J. Winn,               gradient information, in Proc. 18th European Conf.
+                                                                           Computer Vision, Milan, Italy, 2025, pp. 1­21.
+       and A. Zisserman, The PASCAL visual object classes           [28] A. Wang, H. Chen, L. Liu, K. Chen, Z. Lin, J. Han, and G.
+       (VOC) challenge, Int. J. Comput. Vis., vol. 88, pp.                 Ding, YOLOv10: Real-time end-to-end object detection,
+       303­338, 2010.                                                      in Proc. 38th Conf. Neural Information Processing
+[17] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones,            Systems, Vancouver, Canada, 2024: 107984­108011.
+       A. N. Gomez, L. Kaiser, and I. Polosukhin, Attention is all  [29] Y. Zhao, W. Lv, S. Xu, J. Wei, G. Wang, Q. Dang, Y. Liu,
+       you need, in Proc. 31st Int. Conf. Neural Information               and J. Chen, DETRs beat YOLOs on real-time object
+       Processing Systems, Long Beach, CA, USA, 2017, pp.                  detection, in Proc. IEEE/CVF Conf. Computer Vision and
+       6000­6010.                                                          Pattern Recognition, Seattle, WA, USA, 2024, pp.
+[18] N. Carion, F. Massa, G. Synnaeve, N. Usunier, A.                      16965­16974.
+       Kirillov, and S. Zagoruyko, End-to-end object detection      [30] G. Cheng, J. Han, L. Guo, X. Qian, P. Zhou, X. Yao, and
+       with transformers, in Proc. 16th European Conf. Computer            X. Hu, Object detection in remote sensing imagery using a
+       Vision, Glasgow, UK, 2020, pp. 213­229.                             discriminatively trained mixture model, ISPRS J.
+[19] J. Beal, E. Kim, E. Tzeng, D. H. Park, A. Zhai, and D.                Photogramm. Remote Sens., vol. 85, pp. 32­43, 2013.
+       Kislyuk, Toward transformer-based object detection,          [31] Y. Cui, W. Ren, X. Cao, and A. Knoll, Focal network for
+       arXiv preprint arXiv: 2012.09958, 2020.                             image restoration, in Proc. IEEE/CVF Int. Conf. Computer
+[20] F. Li, H. Zhang, H. Xu, S. Liu, L. Zhang, L. M. Ni, and H.            Vision, Paris, France, 2023, pp. 12955­12965.
+       Y. Shum, Mask DINO: Towards a unified transformer-           [32] L. Zhu, X. Wang, Z. Ke, W. Zhang, and R. Lau,
+       based framework for object detection and segmentation, in           BiFormer: Vision transformer with Bi-level routing
+       Proc. IEEE/CVF Conf. Computer Vision and Pattern                    attention, in Proc. IEEE/CVF Conf. Computer Vision and
+       Recognition, Vancouver, Canada, 2023, pp. 3041­3050.                Pattern Recognition, Vancouver, Canada, 2023, pp.
+[21] L. He, W. Wang, A. Chen, M. Sun, C. H. Kuo, and S.                    10323­10333.
+       Todorovic, Bidirectional alignment for domain adaptive       [33] G. Yang, J. Lei, Z. Zhu, S. Cheng, Z. Feng, and R. Liang,
+       detection with transformers, in Proc. IEEE/CVF Int. Conf.           AFPN: Asymptotic feature pyramid network for object
+       Computer Vision, Paris, France, 2023, pp. 18729­18739.              detection, in Proc. IEEE Int. Conf. Systems, Man, and
+[22] C. Xia, X. Wang, F. Lv, X. Hao, and Y. Shi, ViT-CoMer:                Cybernetics, Honolulu, HI, USA, 2023, pp. 2184­2189.
+       Vision transformer with convolutional multi-scale feature    [34] R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D.
+       interaction for dense predictions, in Proc. IEEE/CVF                Parikh, and D. Batra, Grad-CAM: Visual explanations
+       Conf. Computer Vision and Pattern Recognition, Seattle,             from deep networks via gradient-based localization, in
+       WA, USA, 2024, pp. 5493­5502.                                       Proc. IEEE Int. Conf. Computer Vision, Venice, Italy,
+[23] J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, You               2017, pp. 618­626.
+       only look once: Unified, real-time object detection, in      [35] T. Y. Lin, P. Goyal, R. Girshick, K. He, and P. Dollár,
+       Proc. IEEE Conf. Computer Vision and Pattern                        Focal loss for dense object detection, in Proc. IEEE Int.
+       Recognition, Las Vegas, NV, USA, 2016, pp. 779­788.                 Conf. Computer Vision, Venice, Italy, 2017, pp.
+[24] J. Redmon and A. Farhadi, YOLOv3: An incremental                      2999­3007.
+       improvement, in Proc. IEEE Conf. Computer Vision and         [36] Z. Cai and N. Vasconcelos, Cascade R-CNN: Delving into
+       Pattern Recognition, Salt Lake City, UT, USA, 2018, pp.             high quality object detection, in Proc. IEEE/CVF Conf.
+       7794­7803.                                                          Computer Vision and Pattern Recognition, Salt Lake City,
+[25] T. Y. Lin, M. Maire, S. Belongie, J. Hays, P. Perona, D.              UT, USA, 2018, pp. 6154­6162.
+       Ramanan, P. Dollár, and C. L. Zitnick, Microsoft COCO:       [37] C. Feng, Y. Zhong, Y. Gao, M. R. Scott, and W. Huang,
+       Common objects in context, in Proc. 13th European Conf.             TOOD: Task-aligned one-stage object detection, in Proc.
+       Computer Vision, Zurich, Switzerland, 2014, pp. 740­755.            IEEE/CVF Int. Conf. Computer Vision, Montreal, Canada,
+[26] C. Y. Wang, A. Bochkovskiy, and H. Y. M. Liao,                        2021, pp. 3490­3499.
+       YOLOv7: Trainable bag-of-freebies sets new state-of-the-     [38] C. Li, L. Li, H. Jiang, K. Weng, Y. Geng, L. Li, Z. Ke, Q.
+       art for real-time object detectors, in Proc. IEEE/CVF Conf.         Li, M. Cheng, W. Nie, et al. , YOLOv6: A single-stage
+       Computer Vision and Pattern Recognition, Vancouver,                 object detection framework for industrial applications,
+       Canada, 2023, pp. 7464­7475.                                        arXiv preprint arXiv: 2209.02976, 2022.
+[27] C. Y. Wang, I. H. Yeh, and H. Y. M. Liao, YOLOv9:
+

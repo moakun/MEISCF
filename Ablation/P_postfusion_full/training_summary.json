@@ -1,0 +1,46 @@
+{
+  "experiment": "P_postfusion_full",
+  "variant": "full",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase4/weights/best.pt",
+  "duration": "12:08:21.392169",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.3710542830072584,
+      "mAP50-95": 0.20606190530848664,
+      "precision": 0.49986977654998543,
+      "recall": 0.3915701530247897
+    },
+    "phase2": {
+      "mAP50": 0.4381991456551019,
+      "mAP50-95": 0.2523240145236401,
+      "precision": 0.5430533467520393,
+      "recall": 0.4421746498062354
+    },
+    "phase3": {
+      "mAP50": 0.485634099246823,
+      "mAP50-95": 0.2833753777955295,
+      "precision": 0.5823171605727497,
+      "recall": 0.4917005000425769
+    },
+    "phase4": {
+      "mAP50": 0.5118253877043167,
+      "mAP50-95": 0.3022848982187523,
+      "precision": 0.5948505459709141,
+      "recall": 0.5155310662331081
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/P_postfusion_full/phase4"
+  }
+}

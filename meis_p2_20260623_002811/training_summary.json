@@ -1,0 +1,46 @@
+{
+  "experiment": "meis_p2_20260623_002811",
+  "variant": "meis_p2",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase4/weights/best.pt",
+  "duration": "1 day, 1:47:33.767914",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.4221106908707797,
+      "mAP50-95": 0.23792079514452344,
+      "precision": 0.5254681145451866,
+      "recall": 0.43405536805780487
+    },
+    "phase2": {
+      "mAP50": 0.4892822628640735,
+      "mAP50-95": 0.28430442301092296,
+      "precision": 0.5878433120800705,
+      "recall": 0.48748695571535494
+    },
+    "phase3": {
+      "mAP50": 0.5218855235894568,
+      "mAP50-95": 0.3071642816939703,
+      "precision": 0.5907219767728147,
+      "recall": 0.5239410070155792
+    },
+    "phase4": {
+      "mAP50": 0.5289284627945133,
+      "mAP50-95": 0.3138533649696123,
+      "precision": 0.5828406748315469,
+      "recall": 0.5331923219985738
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase4"
+  }
+}

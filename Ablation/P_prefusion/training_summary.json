@@ -1,0 +1,46 @@
+{
+  "experiment": "P_prefusion",
+  "variant": "frm_prefusion",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase4/weights/best.pt",
+  "duration": "12:27:36.555399",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.3694803216397119,
+      "mAP50-95": 0.20607836786939976,
+      "precision": 0.5003988219176668,
+      "recall": 0.3859302384018751
+    },
+    "phase2": {
+      "mAP50": 0.43731714265072974,
+      "mAP50-95": 0.25051156923391266,
+      "precision": 0.5496135168665941,
+      "recall": 0.44610490003757725
+    },
+    "phase3": {
+      "mAP50": 0.48363667766923124,
+      "mAP50-95": 0.2820516331127394,
+      "precision": 0.5725499015923283,
+      "recall": 0.4936734209064186
+    },
+    "phase4": {
+      "mAP50": 0.5062418334273359,
+      "mAP50-95": 0.2978713437348946,
+      "precision": 0.5999073757244906,
+      "recall": 0.5071232712016237
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/ablation/P_prefusion/phase4"
+  }
+}

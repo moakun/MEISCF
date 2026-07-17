@@ -1,0 +1,8 @@
+{
+  "imgsz": 1024,
+  "device": "cuda",
+  "half": true,
+  "fps": 33.62,
+  "latency_ms": 29.743,
+  "iters": 100
+}
