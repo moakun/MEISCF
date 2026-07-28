@@ -55,6 +55,7 @@ def evaluate_multi_resolution(model_path, data_yaml, imgszs=(640, 800, 1024, 128
         }
         logger.info(f"  {imgsz}px: mAP@50={m.box.map50:.4f} mAP@50-95={m.box.map:.4f}")
     if out_json:
+        Path(out_json).parent.mkdir(parents=True, exist_ok=True)
         Path(out_json).write_text(json.dumps(results, indent=2))
         logger.info(f"Saved multi-resolution evaluation -> {out_json}")
     return results
@@ -76,6 +77,7 @@ def per_class_ap(model_path, data_yaml, imgsz=1280, out_json=None, names=None,
             'AP50-95': float(m.box.ap[idx]),
         }
     if out_json:
+        Path(out_json).parent.mkdir(parents=True, exist_ok=True)
         Path(out_json).write_text(json.dumps(out, indent=2))
     return out
 
@@ -111,6 +113,7 @@ def benchmark_fps(model_path, imgsz=1024, warmup=20, iters=100, device=None,
     logger.info(f"FPS @ {imgsz}px ({device}, half={half}): {fps:.1f} "
                 f"({latency_ms:.2f} ms/img)")
     if out_json:
+        Path(out_json).parent.mkdir(parents=True, exist_ok=True)
         Path(out_json).write_text(json.dumps(result, indent=2))
     return result
 
@@ -131,6 +134,7 @@ def model_complexity(model_path, imgsz=640, out_json=None):
     logger.info(f"Complexity @ {imgsz}px: {info['params_millions']}M params, "
                 f"{info.get('gflops', 'n/a')} GFLOPs")
     if out_json:
+        Path(out_json).parent.mkdir(parents=True, exist_ok=True)
         Path(out_json).write_text(json.dumps(info, indent=2))
     return info
 

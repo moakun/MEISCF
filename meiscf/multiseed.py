@@ -60,6 +60,9 @@ def run_multiseed(data_yaml, variants, seeds, runs_dir='runs/meiscf', nc=10,
             if not best:
                 logger.error(f"{exp}: training produced no checkpoint; continuing.")
                 continue
+            # The trainer creates the experiment dir but not the evaluation
+            # subdir; create it before writing the results JSON.
+            done_marker.parent.mkdir(parents=True, exist_ok=True)
             evaluate_multi_resolution(
                 best, data_yaml, imgszs=tuple(eval_imgszs),
                 max_det=600, out_json=done_marker)
