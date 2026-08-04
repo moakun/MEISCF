@@ -188,7 +188,8 @@ def cmd_evaluate(cfg, args):
                 per_class_imgsz=ev['per_class_imgsz'],
                 fps_imgsz=ev['fps_imgsz'],
                 max_det=ev.get('max_det', 300),
-                augment=augment)
+                augment=augment,
+                batch=ev.get('batch', 4))
 
 
 def cmd_multiseed(cfg, args):
@@ -219,7 +220,8 @@ def cmd_multiseed(cfg, args):
         pretrained=_p(cfg, 'pretrained'), device=t['device'],
         workers=t['workers'], batch_scale=t['batch_scale'],
         amp=t.get('amp', False), optimizer=t.get('optimizer', 'SGD'),
-        phases=tuple(t['phases']), epochs_per_phase=epp)
+        phases=tuple(t['phases']), epochs_per_phase=epp,
+        eval_batch=cfg['eval'].get('batch', 2))
 
 
 def cmd_heatmaps(cfg, args):

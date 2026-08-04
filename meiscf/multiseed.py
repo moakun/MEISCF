@@ -32,7 +32,7 @@ def run_multiseed(data_yaml, variants, seeds, runs_dir='runs/meiscf', nc=10,
                   scale='s', pretrained='yolo11s.pt', device=None, workers=8,
                   batch_scale=1.0, amp=False, optimizer='SGD',
                   eval_imgszs=(1280, 1536), phases=(1, 2, 3, 4),
-                  epochs_per_phase=None):
+                  epochs_per_phase=None, eval_batch=2):
     """Train + evaluate each (variant, seed); skip pairs already evaluated."""
     from .trainer import MultiPhaseTrainer
     from .evaluate import evaluate_multi_resolution
@@ -63,8 +63,13 @@ def run_multiseed(data_yaml, variants, seeds, runs_dir='runs/meiscf', nc=10,
             # The trainer creates the experiment dir but not the evaluation
             # subdir; create it before writing the results JSON.
             done_marker.parent.mkdir(parents=True, exist_ok=True)
+            # Free the training graph before high-res validation (P2 @1536 is
+            # memory-hungry; leftover cache from training can trigger OOM).
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             evaluate_multi_resolution(
-                best, data_yaml, imgszs=tuple(eval_imgszs),
+                best, data_yaml, imgszs=tuple(eval_imgszs), batch=eval_batch,
                 max_det=600, out_json=done_marker)
 
     return aggregate_multiseed(runs_dir, variants)

@@ -55,6 +55,9 @@ eval:
                           # 300 only when reproducing the paper's exact protocol.
   tta: false              # test-time augmentation (multi-scale + flips) for the
                           # mAP passes. Enable per-run via:  run.py evaluate --tta
+  batch: 2                # val batch size. P2 models at 1536 (384x384 stride-4
+                          # map) OOM at the old default of 4; lower to 1 if the
+                          # GPU is shared with a running training job.
 
   # --- Tiled / SAHI inference (eval-only; helps small-object recall) ---------
   tiled:

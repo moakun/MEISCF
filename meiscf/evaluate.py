@@ -54,6 +54,11 @@ def evaluate_multi_resolution(model_path, data_yaml, imgszs=(640, 800, 1024, 128
             'per_class_AP50': per_class,
         }
         logger.info(f"  {imgsz}px: mAP@50={m.box.map50:.4f} mAP@50-95={m.box.map:.4f}")
+        # Release cached activations before the next (larger) resolution,
+        # otherwise the 1280 -> 1536 step can OOM on an otherwise-fine GPU.
+        del m
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     if out_json:
         Path(out_json).parent.mkdir(parents=True, exist_ok=True)
         Path(out_json).write_text(json.dumps(results, indent=2))
@@ -140,7 +145,8 @@ def model_complexity(model_path, imgsz=640, out_json=None):
 
 
 def full_report(model_path, data_yaml, out_dir, imgszs=(640, 800, 1024, 1280),
-                per_class_imgsz=1280, fps_imgsz=1024, max_det=300, augment=False):
+                per_class_imgsz=1280, fps_imgsz=1024, max_det=300, augment=False,
+                batch=4):
     """Run the complete evaluation suite and dump every artifact to out_dir.
 
     max_det: max detections per image kept before metric computation. VisDrone
@@ -149,13 +155,14 @@ def full_report(model_path, data_yaml, out_dir, imgszs=(640, 800, 1024, 1280),
     augment: enable test-time augmentation (TTA) for the mAP passes.
     """
     out_dir = Path(out_dir); out_dir.mkdir(parents=True, exist_ok=True)
-    report = {'model': str(model_path), 'max_det': max_det, 'tta': augment}
+    report = {'model': str(model_path), 'max_det': max_det, 'tta': augment,
+              'batch': batch}
     report['multi_resolution'] = evaluate_multi_resolution(
         model_path, data_yaml, imgszs=imgszs, max_det=max_det, augment=augment,
-        out_json=out_dir / 'multi_resolution.json')
+        batch=batch, out_json=out_dir / 'multi_resolution.json')
     report['per_class'] = per_class_ap(
         model_path, data_yaml, imgsz=per_class_imgsz, max_det=max_det, augment=augment,
-        out_json=out_dir / 'per_class_ap.json')
+        batch=batch, out_json=out_dir / 'per_class_ap.json')
     report['fps'] = benchmark_fps(
         model_path, imgsz=fps_imgsz, out_json=out_dir / 'fps.json')
     report['complexity'] = model_complexity(
