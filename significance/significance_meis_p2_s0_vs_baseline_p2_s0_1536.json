@@ -1,0 +1,47 @@
+{
+  "model_a": {
+    "label": "meis_p2_s0",
+    "weights": "runs/meiscf/meis_p2_20260623_002811/phase4/weights/best.pt",
+    "mAP50": 0.5464934836209203,
+    "mAP50-95": 0.32181955318737737,
+    "imgsz": 1536,
+    "max_det": 600,
+    "augment": false
+  },
+  "model_b": {
+    "label": "baseline_p2_s0",
+    "weights": "runs/meiscf/baseline_p2_20260708_173650/phase4/weights/best.pt",
+    "mAP50": 0.5406230477086987,
+    "mAP50-95": 0.3200897528222672,
+    "imgsz": 1536,
+    "max_det": 600,
+    "augment": false
+  },
+  "n_images": 548,
+  "imgsz": 1536,
+  "image_level_bootstrap": {
+    "mAP50": {
+      "observed_delta_pp": 0.5870435912221583,
+      "ci_low_pp": -0.14745754464072694,
+      "ci_high_pp": 1.2659112548378153,
+      "p_value": 0.11,
+      "boot_mean_pp": 0.5779891693734053,
+      "boot_std_pp": 0.3511470047579347,
+      "n_boot": 1000
+    },
+    "mAP50-95": {
+      "observed_delta_pp": 0.1729800365110168,
+      "ci_low_pp": -0.33931719188035864,
+      "ci_high_pp": 0.6881897836851663,
+      "p_value": 0.484,
+      "boot_mean_pp": 0.17235883628081267,
+      "boot_std_pp": 0.25692208390098087,
+      "n_boot": 1000
+    }
+  },
+  "image_level_permutation": {
+    "observed_delta_pp": 0.5870435912221583,
+    "p_value": 0.11688311688311688,
+    "n_perm": 1000
+  }
+}

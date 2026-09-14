@@ -30,12 +30,14 @@ class MEIS(nn.Module):
     reduction : bottleneck ratio r for the gating MLP (paper r=16)
     """
 
-    def __init__(self, c1, dilations=(1, 2, 4), reduction=16):
+    def __init__(self, c1, dilations=(1, 2, 4), reduction=16, gate='adaptive'):
         super().__init__()
         self.c1 = c1
+        self.gate_mode = gate
         r = max(c1 // reduction, 8)
         self.branches = nn.ModuleList()
         self.gates = nn.ModuleList()
+        self.static_gates = nn.ParameterList()
         for d in dilations:
             # Depthwise (dilated) -> pointwise: depthwise-separable edge extractor.
             self.branches.append(nn.Sequential(
@@ -45,18 +47,31 @@ class MEIS(nn.Module):
                 nn.BatchNorm2d(c1),
                 nn.SiLU(),
             ))
-            # alpha_s = sigma(FC2(ReLU(FC1(GAP(E_s)))))  -> channel-wise gate.
-            self.gates.append(nn.Sequential(
-                nn.AdaptiveAvgPool2d(1),
-                nn.Conv2d(c1, r, 1), nn.ReLU(inplace=True),
-                nn.Conv2d(r, c1, 1), nn.Sigmoid(),
-            ))
+            if gate == 'adaptive':
+                # alpha_s = sigma(FC2(ReLU(FC1(GAP(E_s)))))  -> per-INPUT gate.
+                self.gates.append(nn.Sequential(
+                    nn.AdaptiveAvgPool2d(1),
+                    nn.Conv2d(c1, r, 1), nn.ReLU(inplace=True),
+                    nn.Conv2d(r, c1, 1), nn.Sigmoid(),
+                ))
+            elif gate == 'static':
+                # Ablation: learnable per-channel weight that does NOT depend on
+                # the input. Isolates per-input adaptivity from channel weighting.
+                # Init 0 -> sigmoid = 0.5, matching the adaptive gate at init.
+                self.static_gates.append(nn.Parameter(torch.zeros(1, c1, 1, 1)))
+            else:
+                raise ValueError(f"gate must be 'adaptive' or 'static', got {gate!r}")
 
     def forward(self, x):
         e = 0
-        for branch, gate in zip(self.branches, self.gates):
-            es = branch(x)
-            e = e + gate(es) * es          # element-wise channel-wise gating (Eq. 4)
+        if self.gate_mode == 'adaptive':
+            for branch, gate in zip(self.branches, self.gates):
+                es = branch(x)
+                e = e + gate(es) * es      # element-wise channel-wise gating (Eq. 4)
+        else:
+            for branch, w in zip(self.branches, self.static_gates):
+                es = branch(x)
+                e = e + torch.sigmoid(w) * es
         return x + e                       # residual integration (Eq. 5)
 
 

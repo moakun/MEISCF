@@ -95,6 +95,12 @@ def _collect_runs(runs_dir, variants):
         seed = summary.get('seed')
         if variant not in found or seed is None:
             continue
+        # Only aggregate multi-phase (progressive) runs. A single-resolution
+        # control records phases_run like ['single1280'] under the SAME variant
+        # and seed, and would otherwise silently replace the progressive run.
+        phases_run = summary.get('phases_run') or []
+        if any(isinstance(p, str) and p.startswith('single') for p in phases_run):
+            continue
 
         # Merge every evaluation*/multi_resolution.json in the experiment dir
         # (covers both the auto 'evaluation/' and manual 'evaluation_1536/').
@@ -196,8 +202,26 @@ def aggregate_multiseed(runs_dir, variants, imgszs=('1280', '1536'),
                     stats_row.append("-")
             md.append("| **mean+/-std** | " + " | ".join(stats_row) + " |")
             md.append("")
+            # Seed-level paired t-interval: is the module effect distinguishable
+            # from retraining noise? (reviewer request for a significance test)
+            from .significance import seed_level_summary
+            seed_tests = {}
+            for z in imgszs:
+                if deltas[z]:
+                    seed_tests[z] = seed_level_summary(deltas[z])
+            if seed_tests:
+                md.append("### Seed-level paired test (t-interval on per-seed deltas)")
+                md.append("")
+                md.append("| res | n | mean (pp) | 95% CI | significant at 95% |")
+                md.append("|---|---|---|---|---|")
+                for z, s in seed_tests.items():
+                    if 'ci_low_pp' in s:
+                        md.append(f"| {z} | {s['n']} | {s['mean_pp']:+.2f} | "
+                                  f"[{s['ci_low_pp']:+.2f}, {s['ci_high_pp']:+.2f}] | "
+                                  f"**{s['significant_at_95']}** |")
+                md.append("")
             report['paired_delta'] = {'a': a, 'b': b, 'seeds': common,
-                                      'stats': pair_stats}
+                                      'stats': pair_stats, 'seed_level': seed_tests}
 
     out_json = runs_dir / f'{out_name}.json'
     out_md = runs_dir / f'{out_name}.md'

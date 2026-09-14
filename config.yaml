@@ -45,6 +45,15 @@ train:
   # e.g. {1: 3, 2: 3, 3: 3, 4: 2}
   epochs_per_phase: null
 
+  # Single-resolution control (run.py train --single-phase). Trains at ONE
+  # resolution for the SAME total epoch budget as the 4-phase curriculum
+  # (100+100+100+50 = 350), isolating the curriculum from input resolution.
+  single_phase:
+    imgsz: 1280
+    epochs: 350
+    batch: 4           # scaled by train.batch_scale; 4*0.5=2 matches phase 4
+    lr0: 0.01          # cosine-annealed over the full run (cos_lr: true)
+
 # --- Evaluation -------------------------------------------------------------
 eval:
   imgszs: [640, 800, 1024, 1280]

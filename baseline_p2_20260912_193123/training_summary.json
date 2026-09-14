@@ -1,0 +1,22 @@
+{
+  "experiment": "baseline_p2_20260912_193123",
+  "variant": "baseline_p2",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    "single1280"
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/meiscf/baseline_p2_20260912_193123/single1280/weights/best.pt",
+  "duration": null,
+  "metrics_per_phase": {
+    "single1280": {
+      "mAP50": 0.5609521524967516,
+      "mAP50-95": 0.3402757947888293,
+      "precision": 0.621185634047564,
+      "recall": 0.5508299425780646
+    }
+  },
+  "phase_dirs": {
+    "single1280": "/home/m019/Desktop/MEISCF/runs/meiscf/baseline_p2_20260912_193123/single1280"
+  }
+}

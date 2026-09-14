@@ -206,7 +206,9 @@ class MultiPhaseTrainer:
                         batch=max(1, int(round(batch * self.batch_scale))),
                         lr0=lr0, name=name))
         logger.info(f"SINGLE-PHASE: imgsz={imgsz} epochs={epochs} batch={cfg['batch']} lr0={lr0}")
+        start = datetime.now()
         results = model.train(**cfg)
+        duration = datetime.now() - start
         self.metrics_history[name] = self._extract_metrics(results)
         save_dir = Path(getattr(model.trainer, 'save_dir', self.project_dir / name))
         self.phase_dirs[name] = save_dir
@@ -214,7 +216,7 @@ class MultiPhaseTrainer:
         del model
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-        self._save_summary(best, None, [name])
+        self._save_summary(best, duration, [name])
         return best if best.exists() else None
 
     # ---- bookkeeping --------------------------------------------------------

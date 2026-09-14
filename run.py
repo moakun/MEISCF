@@ -114,13 +114,24 @@ def cmd_train(cfg, args):
         workers=t['workers'], seed=t['seed'], batch_scale=t['batch_scale'],
         amp=t.get('amp', False), optimizer=t.get('optimizer', 'AdamW'),
         momentum=t.get('momentum', 0.9))
-    epp = t.get('epochs_per_phase')
-    epp = {int(k): v for k, v in epp.items()} if epp else None
-    phases = tuple(t['phases'])
-    if args.start_phase:
-        phases = tuple(p for p in phases if p >= args.start_phase)
-    best = trainer.train(phases=phases, epochs_per_phase=epp,
-                         resume_from=args.resume_from)
+    if args.single_phase:
+        # Reviewer-requested control: train at ONE fixed resolution (the final
+        # resolution of the progressive schedule) so the curriculum itself can
+        # be isolated from the benefit of high-resolution inputs.
+        sp = dict(imgsz=1280, epochs=350, batch=4, lr0=0.01)
+        sp.update(t.get('single_phase', {}) or {})
+        logger.info(f"SINGLE-PHASE control: {sp}")
+        best = trainer.train_single_phase(
+            imgsz=sp['imgsz'], epochs=sp['epochs'], batch=sp['batch'],
+            lr0=sp['lr0'], name=f"single{sp['imgsz']}")
+    else:
+        epp = t.get('epochs_per_phase')
+        epp = {int(k): v for k, v in epp.items()} if epp else None
+        phases = tuple(t['phases'])
+        if args.start_phase:
+            phases = tuple(p for p in phases if p >= args.start_phase)
+        best = trainer.train(phases=phases, epochs_per_phase=epp,
+                             resume_from=args.resume_from)
     logger.info(f"Best model: {best}")
     if best:
         from meiscf.evaluate import full_report
@@ -128,7 +139,8 @@ def cmd_train(cfg, args):
                     imgszs=tuple(cfg['eval']['imgszs']),
                     per_class_imgsz=cfg['eval']['per_class_imgsz'],
                     fps_imgsz=cfg['eval']['fps_imgsz'],
-                    max_det=cfg['eval'].get('max_det', 300))
+                    max_det=cfg['eval'].get('max_det', 300),
+                    batch=cfg['eval'].get('batch', 2))
     print(best)
     return best
 
@@ -224,6 +236,21 @@ def cmd_multiseed(cfg, args):
         eval_batch=cfg['eval'].get('batch', 2))
 
 
+def cmd_significance(cfg, args):
+    from meiscf.significance import compare_models
+    data_yaml = _resolve_data_yaml(cfg)
+    if not (args.weights_a and args.weights_b):
+        sys.exit("significance requires --weights-a and --weights-b")
+    ev = cfg['eval']
+    out = Path(args.out or (Path(_p(cfg, 'runs_dir')) / 'significance'))
+    seed_deltas = [float(x) for x in args.seed_deltas] if args.seed_deltas else None
+    compare_models(
+        args.weights_a, args.weights_b, data_yaml, out,
+        imgsz=args.imgsz, label_a=args.label_a, label_b=args.label_b,
+        max_det=ev.get('max_det', 600), n_boot=args.n_boot, n_perm=args.n_perm,
+        device=cfg['train'].get('device'), seed_deltas=seed_deltas)
+
+
 def cmd_heatmaps(cfg, args):
     from meiscf.heatmaps import (comparative_heatmaps, heatmaps_for_image,
                                  sample_val_images)
@@ -287,7 +314,8 @@ def build_parser():
     p = argparse.ArgumentParser(description="MEISCF-YOLO unified CLI")
     p.add_argument('command',
                    choices=['smoke', 'prepare', 'train', 'ablation', 'evaluate',
-                            'heatmaps', 'visualize', 'multiseed', 'all'])
+                            'heatmaps', 'visualize', 'multiseed',
+                            'significance', 'all'])
     p.add_argument('--config', default='config.yaml')
     p.add_argument('--variant', default=None, help="override train.variant")
     p.add_argument('--weights', default=None, help="model checkpoint (evaluate/heatmaps)")
@@ -298,6 +326,18 @@ def build_parser():
                    help="checkpoint to start the first (lowest) phase from")
     p.add_argument('--start-phase', type=int, default=None,
                    help="skip phases below this number (use with --resume-from)")
+    p.add_argument('--single-phase', action='store_true',
+                   help="train: single fixed-resolution control instead of the "
+                        "4-phase curriculum (params from train.single_phase)")
+    p.add_argument('--weights-a', default=None, help="significance: first checkpoint")
+    p.add_argument('--weights-b', default=None, help="significance: second checkpoint")
+    p.add_argument('--label-a', default='A', help="significance: name for model A")
+    p.add_argument('--label-b', default='B', help="significance: name for model B")
+    p.add_argument('--imgsz', type=int, default=1536, help="significance: eval resolution")
+    p.add_argument('--n-boot', type=int, default=1000, help="significance: bootstrap resamples")
+    p.add_argument('--n-perm', type=int, default=1000, help="significance: permutations")
+    p.add_argument('--seed-deltas', nargs='*', default=None,
+                   help="significance: per-seed paired deltas in pp for the seed-level test")
     p.add_argument('--variants', nargs='*', default=None,
                    help="multiseed: variants to run (default: meis_p2 baseline_p2)")
     p.add_argument('--seeds', nargs='*', default=None,
@@ -338,7 +378,8 @@ def main():
         'smoke': cmd_smoke, 'prepare': cmd_prepare, 'train': cmd_train,
         'ablation': cmd_ablation, 'evaluate': cmd_evaluate,
         'heatmaps': cmd_heatmaps, 'visualize': cmd_visualize,
-        'multiseed': cmd_multiseed, 'all': cmd_all,
+        'multiseed': cmd_multiseed, 'significance': cmd_significance,
+        'all': cmd_all,
     }[args.command](cfg, args)
 
 

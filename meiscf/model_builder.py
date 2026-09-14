@@ -236,6 +236,20 @@ _HEAD_BASELINE_P2 = """
   - [[19, 22, 25, 28], 1, Detect, [nc]]        # 29  Detect(P2, P3, P4, P5)
 """
 
+# ---------------------------------------------------------------------------
+# MEIS gating/dilation factorial (Reviewer 4.1, 5.1). Identical to meis_p2 in
+# every respect except the MEIS configuration, so the 2x2 design isolates:
+#   dilation diversity (1,2,4 vs 1,1,1)  x  gating (per-input vs static)
+# The (1,1,1 + static) cell is the pure capacity control: "does ANY extra
+# convolution of this size give the same gain?"
+_HEAD_MEIS_P2_T = _HEAD_MEIS_P2.replace("MEIS, []", "MEIS, {MEIS_ARGS}")
+
+_MEIS_P2_FACTORIAL = {
+    'meis_p2_static': '[[1, 2, 4], 16, static]',   # multi-dilation, static gate
+    'meis_p2_nodil':  '[[1, 1, 1], 16, adaptive]', # single dilation, adaptive gate
+    'meis_p2_conv':   '[[1, 1, 1], 16, static]',   # capacity control
+}
+
 _HEADS = {
     'baseline':      _HEAD_BASELINE,
     'meis':          _HEAD_MEIS,
@@ -247,10 +261,13 @@ _HEADS = {
     'full_p2':       _HEAD_FULL_P2,
     'meis_p2':       _HEAD_MEIS_P2,
     'baseline_p2':   _HEAD_BASELINE_P2,
+    **{k: _HEAD_MEIS_P2_T.replace('{MEIS_ARGS}', v)
+       for k, v in _MEIS_P2_FACTORIAL.items()},
 }
 
 VARIANTS = ['baseline', 'meis', 'meis_sf', 'full', 'frm_prefusion',
-            'sf_sequential', 'full_p2', 'meis_p2', 'baseline_p2']
+            'sf_sequential', 'full_p2', 'meis_p2', 'baseline_p2',
+            *list(_MEIS_P2_FACTORIAL)]
 
 # YOLOv11 scale presets [depth, width, max_channels]. We default to 's'.
 _SCALES = {
@@ -369,6 +386,8 @@ def _transfer_head_c3k2_weights(meiscf_model, pretrained_path, variant='full'):
             },
         }
 
+        for _k in _MEIS_P2_FACTORIAL:
+            _VARIANT_C3K2_MAP[_k] = _VARIANT_C3K2_MAP['meis_p2']
         mapping = _VARIANT_C3K2_MAP.get(variant)
         if mapping is None:
             logger.warning(f"No C3k2 head transfer mapping for variant='{variant}'. "

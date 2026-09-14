@@ -1,0 +1,181 @@
+Ms. No.: DSP-D-26-02086
+Title: MEISCF: Multi-scale Edge Information Selection with Cross-scale Fusion for Small Object Detection in UAV Imagery
+Corresponding Author: Professor Huiying Xu
+Authors: MOATASSIM BARAKAT; XinXhong Zhu
+
+Dear Professor Xu,
+
+Thank you for submitting your manuscript to Digital Signal Processing.
+
+To view your reviewer feedback, please log in as an author at https://www.editorialmanager.com/dsp/ and navigate to your manuscript in the " Submissions Needing Revision " folder under the Author Main Menu. 
+ 
+When revising your manuscript, please consider all issues mentioned in the reviewers' comments carefully. Please note that your revised submission may need to be re-reviewed. 
+The reviewers have made suggestions which the Editor feels would improve your manuscript. The Editor encourages you to consider these comments and make an appropriate revision of your manuscript.
+
+Please submit your revision online within
+Sep 18, 2026 by logging onto the Editorial Manager for Digital Signal Processing:
+https://www.editorialmanager.com/dsp/
+Your username is: ********
+If you need to retrieve password details, please go to:
+Can't remember your password?
+To reset your password please try to sign in and click 'continue'. On the next screen click the 'forgot password' link and follow the steps to reset your password. 
+
+The manuscript record can be found in the "Submissions Needing Revision" menu.
+
+NOTE: Upon submitting your revised manuscript, please upload the source files for your article. For additional details regarding acceptable file formats, please refer to the Guide for Authors at: <<>>
+
+When submitting your revised paper, we ask that you include the following items:
+
+Response to Reviewers (mandatory)
+
+This should be a separate file labeled "Response to Reviewers" that carefully addresses, point-by-point, the issues raised in the comments appended below. You should also include a suitable rebuttal to any specific request for change that you have not made. Mention the page, paragraph, and line number of any revisions that are made.
+
+Manuscript and Figure Source Files (mandatory)
+
+We cannot accommodate PDF manuscript files for production purposes. We also ask that when submitting your revision you follow the journal formatting guidelines. Figures and tables may be embedded within the source file for the submission as long as they are of sufficient resolution for Production. For any figure that cannot be embedded within the source file (such as *.PSD Photoshop files), the original figure needs to be uploaded separately. Refer to the Guide for Authors for additional information.
+
+http://www.elsevier.com/journals/digital-signal-processing/1051-2004/guide-for-authors.
+
+Highlights (optional)
+
+Highlights consist of a short collection of bullet points that convey the core findings of the article and should be submitted in a separate file in the online submission system. Please use 'Highlights' in the file name and include 3 to 5 bullet points (maximum 85 characters, including spaces, per bullet point). See the following website for more information
+
+http://www.elsevier.com/highlights
+
+Graphical Abstract (optional).
+
+Graphical Abstracts should summarize the contents of the article in a concise, pictorial form designed to capture the attention of a wide readership online. Refer to the following website for more information: http://www.elsevier.com/graphicalabstracts.
+
+
+The revised version of your submission is due by Sep 18, 2026.
+
+PLEASE NOTE: Digital Signal Processing would like to enrich online articles by displaying interactive figures that help the reader to visualize and explore your research results. For this purpose, we would like to invite you to upload figures in the MATLAB .FIG file format as supplementary material to our online submission system. Elsevier will generate interactive figures from these files and include them with the online article on SciVerse ScienceDirect. If you wish, you can submit .FIG files along with your revised submission.
+
+Include interactive data visualizations in your publication and let your readers interact and engage more closely with your research. Follow the instructions here: https://www.elsevier.com/researcher/author/tools-and-resources/data-visualization to find out about available data visualization options and how to include them with your article.
+
+ 
+
+Research Elements (optional)
+This journal encourages you to share research objects - including your raw data, methods, protocols, software, hardware and more – which support your original research article in a Research Elements journal. Research Elements are open access, multidisciplinary, peer-reviewed journals which make the objects associated with your research more discoverable, trustworthy and promote replicability and reproducibility. As open access journals, there may be an Article Publishing Charge if your paper is accepted for publication. Find out more about the Research Elements journals at https://www.elsevier.com/authors/tools-and-resources/research-elements-journals?dgcid=ec_em_research_elements_email.
+
+
+Thank you and we look forward to receiving your revised manuscript.
+
+With kind regards,
+
+Tamas Sziranyi, Professor, DSc
+Area Editor
+Digital Signal Processing
+E-mail: dsp@elsevier.com
+
+
+
+Reviewers' comments:
+
+
+
+Reviewer #1:
+I found this paper to address an important and timely problem of small object detection in UAV imagery.
+Proposed framework combines progressive multi-resolution training, edge information extraction, cross-scale feature fusion, and a post-fusion attention mechanism.
+Overall, I found the manuscript to be well organized and the experimental evaluation to be comprehensive.
+Nevertheless, I believe that several important issues should be addressed before the manuscript can be considered for publication.
+
+Introduction section could more clearly distinguish the genuine methodological contribution from the integration of previously established techniques.
+Several components of the proposed architecture, including the CBAM-based attention mechanism, multi-scale feature fusion, and progressive multi-resolution training, are based on well-known concepts.
+Therefore, please explicitly identify which aspects constitute the primary scientific contribution of the proposed framework.
+
+The Related Work section provides a broad overview of the existing literature; however, it is largely descriptive.
+I recommend more critical discussion of previous approaches and a clearer explanation of how the proposed framework differs from recent lightweight YOLO variants, Transformer-based detectors, and other state-of-the-art methods for aerial object detection.
+
+From a methodological perspective, I noticed that the largest improvement in detection performance is achieved by the progressive multi-resolution training strategy, whereas the architectural modifications contribute only an additional improvement.
+Thus it is difficult to clearly assess the actual impact of the proposed architectural innovations on the reported results. In my opinion, a more convincing evaluation should include comparisons with competing approaches, particularly CF-YOLO, trained using the same progressive training schedule.
+Adaptive gating mechanism within the MEIS module and the selected dilation rates are evaluated only as part of the complete framework.
+As a result, it remains difficult to determine which individual components are primarily responsible for the observed performance improvement.
+
+The methodological novelty of the Feature Recalibration Module known as FRM also appears relatively limited. As acknowledged by the authors, its structure is essentially equivalent to the well-known CBAM module, while the primary difference lies only in its placement after the feature fusion stage.
+Similarly, although the proposed framework represents an interesting combination of edge information extraction, multi-scale feature fusion, and attention mechanisms, most of its building blocks are derived from previously established solutions. I could be taking into account deeper theoretical analysis explaining why this particular combination of modules should produce more discriminative feature representations and more effective information flow than existing architectures.
+
+Another aspect that deserves further attention is the interpretability of the proposed method. I recommend present visualizations of feature maps, activation maps, or attention maps demonstrating that the network indeed focuses on edge-related structures.
+In my opinion, the experimental validation could also be expanded. The cross-dataset evaluation on the UAVDT dataset considers only the dominant car category and results in a relatively modest improvement.
+Please take into your consideration to evaluate the robustness of the proposed framework under challenging imaging conditions, such as motion blur, varying illumination, partial occlusion, and image noise.
+I recommend extending the experimental comparison to include more recent lightweight Transformer-based object detectors as well as the latest YOLO variants specifically designed for aerial imagery.
+
+To sum up, I consider this paper present an interesting engineering solution with promising experimental performance.
+The main improvement in detection accuracy appears to originate from the progressive training strategy, whereas the contribution of the newly introduced architectural components is comparatively more limited.
+
+
+
+
+Reviewer #2: This manuscript addresses the important and challenging problem of small object detection in UAV imagery, a research topic with significant relevance to modern computer vision and digital signal processing. Accurate detection of small-scale targets under complex backgrounds and varying object scales remains a critical challenge, particularly for practical UAV-based applications such as surveillance, intelligent transportation, environmental monitoring, and emergency response.
+The proposed MEISCF framework presents a well-motivated combination of progressive training, multi-scale edge information selection, and cross-scale feature fusion to improve small object detection performance. The methodological design is technically sound, and the integration of edge-aware feature learning with an efficient training strategy provides a meaningful contribution to the field. The experimental studies are comprehensive, including detailed ablation analyses and cross-dataset validation, which convincingly demonstrate the effectiveness of the proposed framework. Moreover, the model achieves an attractive balance between detection accuracy and computational efficiency, highlighting its practical value for real-world UAV vision applications.
+Overall, the manuscript is clearly written, the technical contribution is well supported by the experimental results, and the proposed approach represents a valuable contribution to the literature.
+
+
+Reviewer #3: The authors proposed a synergy detection framework between a four-phase progressive training strategy and multi-scale edge information selection. The progressive schedule serves as the primary performance driver,providing curriculum learning with effective high-resolution feature extraction; the MEIS module maximizes the benefit of this training by explicitly capturing boundary features at three receptive field scales with per-input adaptive gating. Cross-scale Sandwich Fusion integrates P3/P4/P5 features simultaneously with learnable weights, and a post-fusion FRM applies CBAM-identical attention operations after fusion.
+The motivation is not clear.
+There are several methods combined together, what is the novelty of this manuscript and what are their functions?
+Figs. 2 and 3 are confusing.
+The expression should be more concise.
+The contributions should be shortened.
+Please check the parts seem like being written by AI, for example, the former part of the abstract.
+The references should be logically organized with enough analyses, and some outdated references should be deleted or replaced. Mohamed Meyer Kana Kone, et al. Applied Soft Computing, 2026, 203: 116069.
+Can quantum computing be helpful to solve this problem? NR Zhou, et al. Advanced Quantum Technologies, 2025, 8(6): 2400530. Gong LH, et al. Advanced Quantum Technologies, 2025, 8(10): e2500224.
+It is hard to follow since the theoretical foundation is not clear.
+Why should we use YOLOv11 but not other new versions?
+More comparisons would be better to convince the audience.The results should be explained theoretically.
+What is the cost of the performance improvement?
+The advantages and disadvantages of this designed method were detailed, can it be realized with current technology?
+It is original and interesting, thus I am pleased to recommend its acceptance for publication after revision.
+
+
+Reviewer #4: 1. The +1.6% gain from the MEIS module is a combined result of three design dimensions (three pyramid levels, three dilation rates, and per-input channel-wise gating). The authors explicitly state that "a dedicated experiment isolating the gating was not conducted," which makes it impossible to determine: Is it the "edge extraction" itself that is effective? Or does the "adaptive gating" contribute the gain? Or is it simply that after resolution enhancement, any additional convolution can bring a +1.x% improvement?
+2. The authors claim to "simultaneously integrate P3/P4/P5," but in fact only the P4 level achieves three-layer fusion; P3 and P5 are only two-level fusions (boundary handling). This is not substantially different from the actual operations in standard FPN/PANet. Moreover, learnable scalar weights have already been widely used in CF-YOLO and EfficientDet. More reasonable explanations and clarifications are required.
+3. The authors acknowledge that CF-YOLO did not use progressive training and that the comparison is an "upper bound." However, this comparison is repeatedly emphasized as a +10.2% improvement in the Abstract, Introduction, and Conclusion, which can easily mislead readers.
+4. On UAVDT, evaluation is conducted only on the "car" class (which accounts for 98.7% of annotations), and achieves only +1.8% AP, which stands in sharp contrast to the +17.6% gain on VisDrone. The authors explain this as "the car category comprises predominantly mid-to-large vehicles where edge modeling provides the least marginal benefit," but this also reveals that MEISCF's cross-domain generalization capability for truly small objects has not been validated at all.
+5. Table 1 and Table 3 appear to be redundant—both present comparisons on the same dataset (VisDrone). However, the reported metrics for the same methods are inconsistent across the two tables. Why?
+6. Some experiments are conducted at 1024×1024 resolution, while others are at 1280×1280. What is the rationale behind this choice? Why is the resolution not kept consistent across all experiments?
+
+
+
+Reviewer #5: 1. The authors acknowledge that the individual contribution of the per-input channel-wise gating in the Multi-scale Edge Information Selection (MEIS) module was not isolated due to hardware constraints. While acceptable, the authors should consider adding a lightweight theoretical justification or a highly scaled-down ablation (e.g., on a 10% subset of VisDrone) to better substantiate the +1.6% gain attributed to the entire MEIS module.
+
+2. The cross-dataset evaluation on UAVDT focuses exclusively on the "car" category due to severe class imbalance (98.7% of annotations). While mathematically justified, the authors should explicitly state in the abstract that "cross-domain generalization for small non-vehicle objects remains unvalidated" rather than leaving this solely for the discussion section.
+
+3. The +10.2% improvement over CF-YOLO is rightly noted as an upper bound due to unmatched training conditions (CF-YOLO lacked the progressive schedule). A brief theoretical discussion in Section 6.3 estimating how much of the +12.8% curriculum learning gain might transfer to CF-YOLO would strengthen this comparative analysis.
+
+4. To strengthen the literature review (Section 2), the authors should broaden their context regarding how modern deep architectures isolate fine-grained boundary patterns, structural abnormalities, and manage severe environmental/background clutter in drone-based sensing. Expanding the background beyond standard optical bounding-box regression to include how deep networks handle subtle feature variations and cross-sensor fusion will solidify the manuscript's theoretical foundation. The authors are encouraged to review and integrate the following relevant frameworks into their discussion:
+a) UAV-DETR: DETR for Anti-Drone Target Detection (arXiv:2603.22841): Useful for contextualizing how small-target-friendly architectures and cross-scale feature recalibration networks suppress background noise when extracting high-frequency structural details of tiny aerial targets.
+
+b) PADrone: Pre-Flight Abnormalities Detection on Drones Using Deep RF Sensing (ACM Digital Library, DOI: 10.1145/3706121): Highly relevant for demonstrating how advanced deep neural layers can be structured to successfully isolate subtle, fine-grained signature variations and dynamic anomalies (non-object characteristics) out of complex, noisy aerial propagation environments.
+
+c) Multi-Sensor Fusion for UAV Classification Based on Feature Maps of Image and Radar Data (arXiv:2410.16089): Relevant for comparing alternative multi-stream integration strategies where high-level features extracted from diverse, cluttered modalities are fused to increase classification and detection robustness.
+
+
+Reviewer #7: 1. The paper attributes the +17.6% total gain to a combination of training and architecture, but the +12.8% from progressive training is measured against a baseline that is not directly comparable. The architectural modules are only evaluated on top of progressive training, so their contribution is not isolated from the benefits of higher resolution inputs. (Page 26, Table 2).
+2. The paper admits that FRM is "a placement choice rather than a structural novelty" and that it "applies CBAM-identical attention operations." However, the paper still counts FRM as a distinct module contributing +1.3%. This is a significant overstatement of novelty, as it is simply a re-arrangement of existing operations. (Page 5, Abstract; Page 18, Section 3.4).
+3. The paper explicitly acknowledges that CF-YOLO is evaluated "at its published configuration without progressive training" and that the +10.2% gap "represents an upper bound under unmatched training conditions." This comparison is misleading and should not be presented as a fair state-of-the-art comparison. (Page 28, Section 6.3).
+4. Curriculum learning through progressive resolution increase is a well-established technique in computer vision (Bengio et al., 2009). The paper presents this as a key innovation, but it is a standard training trick, not a methodological novelty. (Page 19, Section 4).
+5. The paper reports a +25% increase in GFLOPs (from 18.7 to 23.4) and a +28% increase in parameters (from 9.4M to 12.0M) compared to YOLOv11s. While the absolute numbers are small, the relative increase is substantial, and the model is no longer "lightweight" compared to the baseline it improves upon. (Page 19, Section 3.5).
+6. The evaluation is performed only on the car category, which comprises 98.7% of annotations and consists of "predominantly mid- to-large vehicles." The paper does not evaluate small object detection on UAVDT, which is the main focus of the paper. The +1.8% AP gain on large vehicles is not evidence of generalizable small-object detection. (Page 28, Table 4).
+7. The paper reports a gap of 6x its uncertainty, but the uncertainty is derived from only three random seeds. With only three runs, the standard error is large, and the results are not statistically robust. A proper significance test (e.g., a paired t-test across all validation images) is not performed. (Page 26, Table 2).
+8. The paper states that "both models are evaluated at 1280×1280 resolution," but the baseline was only trained at 640px. This gives MEISCF an unfair advantage, as it was trained on the higher resolution, and the baseline must generalize to an unseen resolution. (Page 22, Section 5.4).
+9. Table 2 shows "YOLOv11 Baseline + Progressive Training" achieving 50.3% mAP@50, but it is unclear if this model is trained for the same number of epochs (350) and with the same hyperparameters. A fair comparison would require a single-phase training at 1280px for the baseline. (Page 26, Table 2).
+10. Learnable weighted fusion of multi-scale features has been explored in prior work, including EfficientDet's BiFPN and CF-YOLO. The paper's claim that "simultaneous three-level fusion" is novel is weak, as it is a minor variation on existing techniques. (Page 16, Section 3.3).
+11. Dilated convolutions are typically used to increase receptive fields without losing resolution, but edge detection typically benefits from fine-grained, small-kernel convolutions. The paper does not explain why dilation rates of 1, 2, and 4 are optimal for extracting edge information. (Page 13, Section 3.2.1).
+12. The paper states that "ablation confirms balanced weighting outperforms stronger emphasis," but it does not provide the ablation results. It is unclear if this parameter is optimal or if it is simply a heuristic. (Page 18, Section 3.4.3).
+13. The paper inconsistently reports performance at different resolutions, making it difficult to assess the model's true efficiency. A fair comparison would report FPS at the same resolution as the evaluation. (Page 21, Table 1; Page 22, Section 5.4).
+14. Reference [26] is cited as "IEEE Access 10 (2022) 85744-85754," but this appears to be a placeholder or a citation of a different paper (Li et al., 2022). The paper does not provide a valid link or DOI, making it difficult to verify the related work. (Page 10, Section 2.2).
+15. The paper states that "68% of objects occupy fewer than 32x32 pixels" and that "small object features experience 4.2x weaker activation magnitudes," but it does not show the analysis that led to these numbers. The claims are based on anecdotal evidence rather than a systematic study. (Page 6, Section 1.1).
+
+
+For further assistance, please visit our customer support site at http://help.elsevier.com/app/answers/list/p/7923. Here you can search for solutions on a range of topics, find answers to frequently asked questions and learn more about EM via interactive tutorials. You will also find our 24/7 support contact details should you need any further assistance from one of our customer support representatives.
+
+At Elsevier, we want to help all our authors to stay safe when publishing. Please be aware of fraudulent messages requesting money in return for the publication of your paper. If you are publishing open access with Elsevier, bear in mind that we will never request payment before the paper has been accepted. We have prepared some guidelines (https://www.elsevier.com/connect/authors-update/seven-top-tips-on-stopping-apc-scams ) that you may find helpful, including a short video on Identifying fake acceptance letters (https://www.youtube.com/watch?v=o5l8thD9XtE ). Please remember that you can contact Elsevier s Researcher Support team (https://service.elsevier.com/app/home/supporthub/publishing/) at any time if you have questions about your manuscript, and you can log into Editorial Manager to check the status of your manuscript (https://service.elsevier.com/app/answers/detail/a_id/29155/c/10530/supporthub/publishing/kw/status/).
+
+#AU_DSP#
+
+To ensure this email reaches the intended recipient, please do not delete the above code
+
+
+
+In compliance with data protection regulations, you may request that we remove your personal registration details at any time. (Remove my information/details). Please contact the publication office if you have any questions.

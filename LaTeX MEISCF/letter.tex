@@ -1,0 +1,85 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[
+    top=2.5cm, bottom=2.5cm,
+    left=2.8cm, right=2.8cm
+]{geometry}
+\usepackage{microtype}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, urlcolor=blue, linkcolor=black}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+\pagestyle{empty}
+
+\begin{document}
+
+% ── Sender (top right) ──────────────────────────────────────────────────────
+\begin{flushright}
+    Moatassim Barakat \\
+    College of Computer Science and Technology \\
+    Zhejiang Normal University, Jinhua 321004, China \\
+    \href{mailto:moatassimbarakat@gmail.com}{moatassimbarakat@gmail.com}
+    \quad
+    \href{mailto:zxz@zjnu.edu.cn}{zxz@zjnu.edu.cn} \\[4pt]
+    \today
+\end{flushright}
+
+\bigskip
+
+% ── Recipient ───────────────────────────────────────────────────────────────
+The Editor-in-Chief \\
+\textit{IEEE Transactions on Geoscience and Remote Sensing}
+
+\bigskip
+
+Dear Editor-in-Chief,
+
+We respectfully submit our manuscript entitled \textbf{``MEISCF: Multi-scale
+Edge Information Selection with Cross-scale Fusion for Small Object Detection
+in UAV Imagery''} for consideration for publication in \textit{IEEE
+Transactions on Geoscience and Remote Sensing}.
+
+Small object detection in UAV aerial imagery poses three fundamental
+challenges: objects manifest primarily as edge-dominated patterns at
+$16{\times}16$ pixel scales, scale variation spans two orders of magnitude
+within single frames, and standard multi-scale fusion mechanisms fail to
+adaptively weight scale-specific information. Existing methods, including the
+current state-of-the-art CF-YOLO (44.9\% mAP@50), address these challenges
+only partially.
+
+This paper proposes MEISCF, which integrates three complementary modules into
+the YOLOv11 architecture: (1)~\textbf{Multi-scale Edge Information Selection
+(MEIS)}, which explicitly captures boundary features at multiple receptive
+fields ($16{\times}16$, $32{\times}32$, $64{\times}64$) with adaptive gating;
+(2)~\textbf{Cross-scale Sandwich Fusion}, which performs learnable three-level
+simultaneous feature integration rather than sequential two-level fusion; and
+(3)~\textbf{Feature Recalibration Module (FRM)}, which applies dual-path
+channel and spatial attention after fusion to refine already-integrated
+multi-scale representations. Combined with a four-phase progressive training
+strategy (640\,$\to$\,800\,$\to$\,1024\,$\to$\,1280\,px), MEISCF achieves
+\textbf{55.1\% mAP@50} on VisDrone---a +17.6\% improvement over the YOLOv11
+baseline and +10.2\% over CF-YOLO---at 105\,FPS on consumer-grade hardware.
+Cross-dataset evaluation on UAVDT (+1.8\% AP) further validates
+generalization beyond the training benchmark.
+
+We believe this work makes a meaningful contribution to the geoscience and
+remote sensing community and is well suited to the scope of \textit{IEEE
+TGRS}. This manuscript has not been published previously and is not under
+consideration elsewhere. All authors have approved the submitted version.
+AI-assisted tools were used for manuscript editing and figure preparation, in
+accordance with IEEE authorship guidelines.
+
+We appreciate your time and look forward to the reviewers' comments.
+
+\bigskip
+
+Sincerely,
+
+\bigskip\bigskip
+
+Moatassim Barakat \& Professor Xinzhong Zhu \\
+College of Computer Science and Technology \\
+Zhejiang Normal University, Jinhua 321004, China
+
+\end{document}
