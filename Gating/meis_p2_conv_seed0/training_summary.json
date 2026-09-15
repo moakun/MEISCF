@@ -1,0 +1,46 @@
+{
+  "experiment": "meis_p2_conv_seed0",
+  "variant": "meis_p2_conv",
+  "scale": "s",
+  "seed": 0,
+  "phases_run": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "best_model": "/home/m019/Desktop/MEISCF/runs/gating/meis_p2_conv_seed0/phase4/weights/best.pt",
+  "duration": "5:20:37.571245",
+  "metrics_per_phase": {
+    "phase1": {
+      "mAP50": 0.3392863374577015,
+      "mAP50-95": 0.18211711649426476,
+      "precision": 0.4540878021282192,
+      "recall": 0.36994566450739563
+    },
+    "phase2": {
+      "mAP50": 0.41286849316005575,
+      "mAP50-95": 0.23242743019593598,
+      "precision": 0.5177357570587992,
+      "recall": 0.4294536496241209
+    },
+    "phase3": {
+      "mAP50": 0.4748653623288449,
+      "mAP50-95": 0.2763362057339491,
+      "precision": 0.5606697671747634,
+      "recall": 0.48743406708466247
+    },
+    "phase4": {
+      "mAP50": 0.4963134006991409,
+      "mAP50-95": 0.28863376876236024,
+      "precision": 0.5705802201523886,
+      "recall": 0.5073563178510088
+    }
+  },
+  "phase_dirs": {
+    "1": "/home/m019/Desktop/MEISCF/runs/gating/meis_p2_conv_seed0/phase1",
+    "2": "/home/m019/Desktop/MEISCF/runs/gating/meis_p2_conv_seed0/phase2",
+    "3": "/home/m019/Desktop/MEISCF/runs/gating/meis_p2_conv_seed0/phase3",
+    "4": "/home/m019/Desktop/MEISCF/runs/gating/meis_p2_conv_seed0/phase4"
+  }
+}
