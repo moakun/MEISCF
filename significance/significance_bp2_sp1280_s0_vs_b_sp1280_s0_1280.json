@@ -1,0 +1,47 @@
+{
+  "model_a": {
+    "label": "bp2_sp1280_s0",
+    "weights": "runs/meiscf/baseline_p2_20260912_193123/single1280/weights/best.pt",
+    "mAP50": 0.5726163808418807,
+    "mAP50-95": 0.3466001941665987,
+    "imgsz": 1280,
+    "max_det": 600,
+    "augment": false
+  },
+  "model_b": {
+    "label": "b_sp1280_s0",
+    "weights": "runs/meiscf/baseline_20260915_034945/single1280/weights/best.pt",
+    "mAP50": 0.5653578723743267,
+    "mAP50-95": 0.3419987508659815,
+    "imgsz": 1280,
+    "max_det": 600,
+    "augment": false
+  },
+  "n_images": 548,
+  "imgsz": 1280,
+  "image_level_bootstrap": {
+    "mAP50": {
+      "observed_delta_pp": 0.7258508467554048,
+      "ci_low_pp": 0.13770350392461717,
+      "ci_high_pp": 1.2571860480502441,
+      "p_value": 0.012,
+      "boot_mean_pp": 0.6997778702710007,
+      "boot_std_pp": 0.2808383971157937,
+      "n_boot": 1000
+    },
+    "mAP50-95": {
+      "observed_delta_pp": 0.46014433006171807,
+      "ci_low_pp": 0.05480756439645352,
+      "ci_high_pp": 0.8259048356860397,
+      "p_value": 0.028,
+      "boot_mean_pp": 0.44833916350170866,
+      "boot_std_pp": 0.19463725146269137,
+      "n_boot": 1000
+    }
+  },
+  "image_level_permutation": {
+    "observed_delta_pp": 0.7258508467554048,
+    "p_value": 0.01898101898101898,
+    "n_perm": 1000
+  }
+}

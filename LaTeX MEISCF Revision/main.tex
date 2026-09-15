@@ -3,16 +3,16 @@
 %
 % Pending results are marked with \tbd[...] and print in red. Before
 % resubmission, search this file for "\tbd" and replace every occurrence:
-%   1. Single-phase 1280 px, seed 42 (Table tab:schedule, abstract)
-%   2. Stride control: YOLOv11s P3--P5, single phase 1280 px (Table tab:stride,
-%      abstract, Sections 5.2 and 7). If the P2 level shows no gain, remove
-%      "Detection Stride" from the title and revise Sections 3 and 7.
-%   3. Size-stratified AP (Table tab:size)
-%   4. UAVDT all-class evaluation (Table tab:uavdt, abstract)
-%   5. FPS at 1280/1536 px on an idle GPU (Table tab:complexity)
-%   6. Fraction of VisDrone training instances below 12.5 and 25 px
-%      (Section 3; computed from dataset_stats.json, CPU only)
-%   7. Declarations (CRediT roles, data availability, AI-use statement)
+%   1. Single-phase Baseline-P2, seed 42 (Table tab:schedule, Sections 4.3 and
+%      5.1, Limitations)
+%   2. FPS at 1280/1536 px on an idle GPU (Table tab:complexity)
+%   3. Declarations (CRediT roles, data availability, AI-use statement)
+% The UAVDT cross-dataset subsection is commented out (search for "UAVDT").
+% Restore it only if that evaluation is run.
+%
+% Sources of the numbers: significance/ (paired tests), significance/perclass and
+% significance/joint_1536 (per-class and 2x2 contrasts), size_ap/ (captures) and
+% size_ap_analysis/ (size-resolved AP and bootstrap intervals).
 % ============================================================================
 
 \documentclass[preprint,12pt]{elsarticle}
@@ -27,6 +27,7 @@
 \usetikzlibrary{positioning,arrows.meta,calc,backgrounds}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
+\usepgfplotslibrary{groupplots}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
@@ -74,34 +75,34 @@ A Controlled Study of Training Resolution, Detection Stride, and Feature Modules
 
 \begin{abstract}
 Small-object detectors for drone imagery are often built by attaching modules to
-a YOLO baseline, with gains of one to three points usually measured in a single
-training run. We asked which design decisions still matter once the training
-budget, evaluation settings and random seed are controlled. Using YOLOv11s on
-VisDrone-DET2019, we compared a four-phase progressive resolution schedule with
-single-resolution training at the same epoch budget, added a stride-4 detection
-level, and tested multi-scale edge information selection (MEIS), cross-scale
-weighted fusion and CBAM-style recalibration. Differences were tested with paired
-image-level bootstrap and permutation tests.
-Training at 1280\,px in a single phase outperformed the progressive schedule by
-3.9 points mAP@50 at 1280\,px (57.3\% vs.\ 53.3\%, $p<0.001$) and matched the
-schedule's final accuracy after one third of its compute. MEIS with recalibration
-changed mAP@50 by $+0.6$ and $-0.3$ points on two seeds, neither significant, and
-a reduced-budget factorial ablation found no benefit from multi-scale dilation or
-input-adaptive gating over a plain convolution of the same size. The stride-4
-level changed mAP@50 by \tbd[X] points. We explain these results with a sampling
-argument: input scale and feature stride fix how many anchor points fall on a
-small object, and modules that act after downsampling cannot add them back. The
-best configuration reaches 58.8\% mAP@50 at 1536\,px with 9.9M parameters. On
-UAVDT, which contains only vehicles, \tbd[UAVDT result]; generalization to small
-non-vehicle objects outside VisDrone is untested.
+a YOLO baseline, with gains of one to three points often measured in a single
+run. We asked which design decisions still matter once the training budget,
+evaluation settings and random seed are controlled. Using YOLOv11s on
+VisDrone-DET2019, we crossed a four-phase progressive resolution schedule and
+single-resolution training at the same epoch budget with detection heads with and
+without a stride-4 level, and tested multi-scale edge information selection (MEIS)
+with CBAM-style recalibration. Differences were tested with paired image-level
+bootstrap tests and analysed by object size.
+Single-phase training at 1280\,px outperformed the progressive schedule by 3.3
+points mAP@50 without the stride-4 level and by 3.9 points with it ($p<0.002$),
+but the gain came mainly from medium and large objects and persisted at a smaller
+test size. The stride-4 level raised AP@50 by 3 to 7 points for objects under 16
+input pixels and lowered it by 1 to 2 points above 32 pixels, so mAP@50 rose by
+only 0.7 points. MEIS with recalibration changed mAP@50 by $+0.6$ and $-0.3$
+points on two seeds and improved no size range below 32 pixels, and a factorial
+ablation found no benefit from multi-scale dilation or adaptive gating over a
+plain convolution. These results fit a sampling account of the architectural
+choices: the stride fixes how densely small objects are sampled, and modules
+applied after downsampling cannot restore what was lost. This account does not
+explain the schedule effect.
 \end{abstract}
 
 \begin{highlights}
-\item Single-resolution training beat a four-phase resolution curriculum by 3.9 pp
-\item It matched the curriculum's final accuracy using a third of the compute
-\item Edge selection and CBAM-style recalibration gave no significant gain
+\item Single-resolution training beat a four-phase resolution schedule by 3--4 pp
+\item Its gain came mostly from medium and large objects, not from small ones
+\item A stride-4 level gained 3--7 AP below 16 px and lost 1--2 AP above 32 px
+\item Edge selection and recalibration did not improve small objects on two seeds
 \item Neither multi-scale dilation nor adaptive gating beat a plain convolution
-\item Input scale and stride set how many anchor points fall on a small object
 \end{highlights}
 
 \begin{keyword}
@@ -148,27 +149,34 @@ CBAM-style recalibration module~\cite{cbam} placed after fusion. We also studied
 two changes that act on sampling rather than on features: the input resolution
 used for training, reached either directly or through a four-phase progressive
 schedule, and a stride-4 (P2) detection level. Every comparison uses a matched
-epoch budget and one evaluation protocol, and each was repeated with independent
-seeds and tested with paired resampling over the validation images.
+epoch budget and one evaluation protocol. The module comparison was repeated with
+independent seeds, and all differences were tested with paired resampling over the
+validation images and broken down by object size.
 
 The results did not follow the module-centred story we expected. Single-resolution
-training at 1280\,px was 3.9 points better than the progressive schedule at the
-same epoch budget, and it reached the schedule's final accuracy with one third of
-its compute. MEIS with recalibration produced no significant change on either of
-two seeds. A factorial ablation showed that neither of the two ingredients that
-define MEIS, multi-scale dilation and input-adaptive gating, did better than a
-plain convolution with the same number of parameters. The stride-4 level
-\tbd[summarise stride result]. This pattern is what one would expect if accuracy
-on small objects is limited mainly by how densely each object is sampled, and
-Section~\ref{sec:sampling} makes that argument concrete for anchor-free detectors.
+training at 1280\,px was 3.3 to 3.9 points better than the progressive schedule at
+the same epoch budget, with and without a stride-4 level, and it reached the
+schedule's final accuracy with one third of its compute. Split by object size,
+however, this gain came mostly from medium and large objects. The stride-4 level
+behaved as a change in sampling should: it raised accuracy on objects spanning
+fewer than two stride-8 cells and lowered it slightly on large objects, which left
+overall mAP almost unchanged. MEIS with recalibration produced no significant
+change on either of two seeds and no gain for small objects, and a factorial
+ablation showed that neither of the two ingredients that define MEIS, multi-scale
+dilation and input-adaptive gating, did better than a plain convolution with the
+same number of parameters. Section~\ref{sec:sampling} sets out the sampling
+argument behind these tests. It accounts for the stride and module results but not
+for the schedule effect.
 
 The paper makes three contributions: (i)~a matched-budget comparison of
-progressive and single-resolution training for small-object detection, with
-measured compute and paired significance tests; (ii)~a controlled evaluation of
-edge selection, weighted fusion and recalibration modules, including a factorial
-ablation that separates multi-scale dilation, adaptive gating and added capacity;
-and (iii)~a sampling account of these results that gives, for a given input size
-and stride, the smallest object that can receive positive training samples.
+progressive and single-resolution training for small-object detection, crossed
+with the detection stride, with measured compute and paired significance tests;
+(ii)~a controlled evaluation of edge selection, weighted fusion and recalibration
+modules, including a factorial ablation that separates multi-scale dilation,
+adaptive gating and added capacity; and (iii)~a sampling account that gives, for a
+given input size and stride, the smallest object that can receive positive training
+samples, tested with a size-resolved evaluation that supports it for the detection
+stride and the modules and rules it out as the explanation of the schedule effect.
 
 % ============================================================================
 \section{Related Work}
@@ -265,10 +273,12 @@ per side:
 Fig.~\ref{fig:sampling} illustrates the effect and Table~\ref{tab:amin} evaluates
 Eq.~\eqref{eq:amin} for frames 2000 pixels wide, which is about the size of the
 largest VisDrone-DET2019 frames. Halving the stride and doubling the input size
-have the same effect on $a_{\min}$. At an input size of 640\,px a stride-8 level
-cannot assign targets to objects smaller than 25 pixels, a range that contains
-\tbd[X]\% of the VisDrone training instances; at 1280\,px with a stride-4 level
-the threshold drops to 6.3 pixels (\tbd[Y]\% of instances below it).
+have the same effect on $a_{\min}$. Measured directly in network-input pixels, the
+geometric-mean side $\sqrt{wh}$ of 31.0\% of the VisDrone validation instances is
+smaller than one stride-8 cell at an input size of 640\,px, and that of 5.8\% is
+smaller than one stride-4 cell. At 1280\,px, 5.8\% of the instances (the same
+objects) are smaller than one stride-8 cell and 0.2\% smaller than one stride-4
+cell.
 
 \begin{figure}[t]
 \centering
@@ -341,15 +351,20 @@ Stride $r$ & $n$ & 640 & 800 & 1024 & 1280 & 1536 \\
 The argument leads to three predictions that the experiments can check.
 \begin{enumerate}
   \item[P1.] Training at a larger input size, or adding a finer detection level,
-  should help most on small objects, because both raise $n$ for the same frames.
+  should help most on small objects, because both raise $n$ for the same frames. A
+  stride-4 level in particular should help objects that span fewer than about two
+  stride-8 cells and matter little for larger ones.
   \item[P2.] A module that operates on stride-$r$ features cannot raise $n$. It can
   reweight what was sampled, but it cannot give training signal to objects that
-  received no positive samples.
+  received no positive samples, so it should not improve small objects the way a
+  finer stride does.
   \item[P3.] A progressive schedule that starts at low resolution spends its early
   epochs in a regime where many small objects cannot be assigned targets
   (Table~\ref{tab:amin}, 640 and 800\,px). Under a fixed epoch budget it should
-  therefore do worse than training at the final resolution throughout.
+  therefore do worse than training at the final resolution throughout, and the
+  deficit should be largest for small objects.
 \end{enumerate}
+Section~\ref{sec:res-size} tests all three predictions by object size.
 Eq.~\eqref{eq:amin} is a simplification. Mosaic and scale augmentation change $k$
 from one training image to the next, context around an object can support
 detection, and the assigner's behaviour near box borders depends on implementation
@@ -402,8 +417,9 @@ after conversion.}
 \label{sec:models}
 
 All detectors are built on YOLOv11s~\cite{yolov11} and initialized from its
-COCO-pretrained weights. The stock model detects at strides 8, 16 and 32 (P3 to
-P5). The \emph{Baseline-P2} variant extends the top-down path of the neck to the
+COCO-pretrained weights. The stock model, which we call YOLOv11s (P3--P5), detects
+at strides 8, 16 and 32 and serves as the three-level reference in the stride
+comparison. The \emph{Baseline-P2} variant extends the top-down path of the neck to the
 stride-4 backbone features and starts the bottom-up path from there, which gives
 four detection levels (Fig.~\ref{fig:arch}). Where a modified neck contains C3k2
 blocks whose weight shapes match the original head, those weights are copied as
@@ -580,12 +596,17 @@ Table~\ref{tab:schedules} lists the two schedules. The \emph{progressive} schedu
 trains for 100, 100, 100 and 50 epochs at 640, 800, 1024 and 1280\,px. Each phase
 restarts a cosine learning-rate schedule with warm-up, and augmentation strength
 decreases while the box and classification loss weights increase from phase to
-phase. The \emph{single-phase} schedule trains for all 350 epochs at 1280\,px with
-the phase-1 settings. Both use SGD with momentum 0.937 and weight decay
+phase. The \emph{single-phase} schedule trains for up to 350 epochs at 1280\,px
+with the phase-1 settings. Both use SGD with momentum 0.937 and weight decay
 $5\times10^{-4}$, mixed precision, and the exponential moving average of weights
-provided by the Ultralytics trainer. Batch sizes were limited by the memory needed
-for the P2 models at 1280\,px and were the same for every model trained with a
-given schedule.
+provided by the Ultralytics trainer. Physical batch sizes were set by GPU memory
+and differ between the three- and four-level detectors (Table~\ref{tab:schedules}).
+The trainer accumulates gradients to a nominal batch of 64 images, which gave an
+effective batch of 60 to 66 images in every phase of every run, so the physical
+batch size mainly changed the number of images over which batch-normalization
+statistics were computed. Early stopping with a patience of 200 epochs affected
+only the single-phase YOLOv11s run, which stopped at epoch 345, 200 epochs after
+its best checkpoint.
 
 \begin{table}[t]
 \centering
@@ -597,21 +618,22 @@ lr$_0\cdot f$ within each phase.}
 \begin{tabular}{lrrrllrlll}
 \toprule
  & Input & Epochs & Batch & lr$_0$ & $f$ & Warm-up & Loss weights & Mosaic / mixup & Scale / \\
- & (px) & & & & & (ep.) & box / cls / DFL & / copy-paste & rotation \\
+ & (px) & & (P2 / P3) & & & (ep.) & box / cls / DFL & / copy-paste & rotation \\
 \midrule
-Progressive, phase 1 &  640 & 100 & 8 & 0.01   & 0.01 & 5 & 7.5 / 0.5 / 1.5 & 1.0 / 0.15 / 0.3 & 0.9 / 10$^\circ$ \\
-Progressive, phase 2 &  800 & 100 & 6 & 0.005  & 0.05 & 3 & 8.0 / 0.6 / 1.6 & 0.8 / 0.10 / 0.4 & 0.8 / 7$^\circ$ \\
-Progressive, phase 3 & 1024 & 100 & 4 & 0.002  & 0.08 & 2 & 8.5 / 0.7 / 1.7 & 0.5 / 0.05 / 0.2 & 0.7 / 5$^\circ$ \\
-Progressive, phase 4 & 1280 &  50 & 2 & 0.0005 & 0.10 & 1 & 9.0 / 0.8 / 1.8 & 0 / 0 / 0.1       & 0.6 / 2$^\circ$ \\
+Progressive, phase 1 &  640 & 100 & 8 / 16 & 0.01   & 0.01 & 5 & 7.5 / 0.5 / 1.5 & 1.0 / 0.15 / 0.3 & 0.9 / 10$^\circ$ \\
+Progressive, phase 2 &  800 & 100 & 6 / 12 & 0.005  & 0.05 & 3 & 8.0 / 0.6 / 1.6 & 0.8 / 0.10 / 0.4 & 0.8 / 7$^\circ$ \\
+Progressive, phase 3 & 1024 & 100 & 4 / 8  & 0.002  & 0.08 & 2 & 8.5 / 0.7 / 1.7 & 0.5 / 0.05 / 0.2 & 0.7 / 5$^\circ$ \\
+Progressive, phase 4 & 1280 &  50 & 2 / 6  & 0.0005 & 0.10 & 1 & 9.0 / 0.8 / 1.8 & 0 / 0 / 0.1       & 0.6 / 2$^\circ$ \\
 \midrule
-Single phase         & 1280 & 350 & 2 & 0.01   & 0.01 & 5 & 7.5 / 0.5 / 1.5 & 1.0 / 0.15 / 0.3 & 0.9 / 10$^\circ$ \\
+Single phase         & 1280 & 350 & 2 / 4  & 0.01   & 0.01 & 5 & 7.5 / 0.5 / 1.5 & 1.0 / 0.15 / 0.3 & 0.9 / 10$^\circ$ \\
 \bottomrule
 \end{tabular}%
 }
 \\[2pt]
 \begin{minipage}{\linewidth}\footnotesize
-Mosaic augmentation is switched off for the last 20, 15, 10 and 0 epochs of phases
-1--4, and for the last 20 epochs of the single-phase schedule.
+Batch sizes are given for the four-level detectors (P2) and for YOLOv11s with three
+levels (P3). Mosaic augmentation is switched off for the last 20, 15, 10 and 0
+epochs of phases 1--4, and for the last 20 epochs of the single-phase schedule.
 \end{minipage}
 \end{table}
 
@@ -621,20 +643,46 @@ input pixels, so $C$ compares schedules independently of hardware and of other
 jobs sharing the machine. The progressive schedule costs $2.92\times10^{8}$
 pixel-epochs and 350 epochs at 1280\,px cost $5.73\times10^{8}$.
 
-Each configuration was trained with seeds 0 and 42. The factorial ablation of
-Section~\ref{sec:res-factorial} used a shortened progressive schedule with 25,
-20, 20 and 10 epochs per phase and was otherwise identical. Experiments ran on
-NVIDIA RTX~3080 GPUs (20\,GB) with Ultralytics~8.4, PyTorch~2.5.1 and CUDA~12.1.
+Under the progressive schedule, Baseline-P2 and Baseline-P2 with MEIS and FRM were
+trained with seeds 0 and 42, and YOLOv11s with seed 0. Under the single-phase
+schedule, YOLOv11s was trained with seed 0 and Baseline-P2 with seed 0
+\tbd[and 42]. The factorial ablation of Section~\ref{sec:res-factorial} used a
+shortened progressive schedule with 25, 20, 20 and 10 epochs per phase, seeds 0
+and 42, and was otherwise identical. Experiments ran on NVIDIA RTX~3080 GPUs
+(20\,GB) with Ultralytics~8.4, PyTorch~2.5.1 and CUDA~12.1.
 
 \subsection{Evaluation}
+\label{sec:eval}
 
 All models were evaluated with the Ultralytics validator using letterbox resizing
 to input size $S$, a confidence threshold of 0.001, non-maximum suppression at an
 IoU of 0.5 and at most 600 detections per image. The validation images contain
-70.7 annotated instances on average. We report mAP@50 and mAP@50:95 with
-101-point interpolation, and precision and recall at the confidence threshold that
-maximizes the mean F1 score. The primary input size is 1280\,px, the final
-training resolution of both schedules; we also report 1536\,px.
+70.7 annotated instances on average. For every run we evaluated the checkpoint
+with the best validation fitness recorded during training, as the Ultralytics
+trainer selects it. We report mAP@50 and mAP@50:95, and precision and recall at
+the confidence threshold that maximizes the mean F1 score. AP follows Ultralytics
+8.4: the precision envelope is sampled at 101 recall levels, set to zero beyond
+the highest recall reached, and integrated with the trapezoidal rule. Some earlier
+releases, including Ultralytics 8.3.91, extend the curve to a recall of one, which
+for identical detections raised mAP@50 by 0.5 to 0.7 points on our models. The
+primary input size is 1280\,px, the final training resolution of both schedules;
+we also report 1536\,px.
+
+\paragraph{Accuracy by object size}
+To test the sampling account, we split AP@50 by object size. For each validation
+image we recorded the detections and, from inside the validator, the ground-truth
+box each detection was matched to, so the matching is the validator's own and the
+all-sizes result reproduces the reported mAP@50. Object size is the geometric-mean
+side $\sqrt{wh}$ of a box. We use it in original-image pixels for the COCO
+ranges~\cite{coco} (small below 32, medium 32 to 96, large above 96) and in
+network-input pixels at the evaluated size for four ranges, 4--8, 8--16, 16--32 and
+at least 32 pixels, which relate directly to stride-4 and stride-8 cells. Within a
+range we follow the COCO convention: ground truth outside the range is ignored, as
+are detections matched to it and unmatched detections whose own size lies outside
+the range. Several classes have only a few boxes in some ranges, so we average AP
+over the classes with at least 100 ground-truth boxes in the range. This keeps all
+ten classes for small and medium objects, cars and vans for large objects, and
+between four and ten classes for the input-pixel ranges.
 
 \subsection{Statistical testing}
 \label{sec:stats}
@@ -647,13 +695,18 @@ images were resampled with replacement 1000 times, both models were scored on ea
 resample, and the 2.5th and 97.5th percentiles of the difference form the 95\%
 confidence interval. The two-sided $p$-value is twice the smaller fraction of
 resampled differences lying on either side of zero; when no resample crosses zero
-we report $p<0.001$. In the \emph{paired permutation test}, the two models'
+we report $p<0.002$, the smallest value that 1000 resamples can resolve. Contrasts
+that involve more than two models, such as the interaction between schedule and
+stride, and all size-resolved differences use the same image resamples for every
+model. In the \emph{paired permutation test}, the two models'
 statistics were swapped independently for each image with probability 0.5, 1000
 times, and $p=(m+1)/1001$, where $m$ counts permutations whose absolute difference
 in mAP@50 is at least the observed one. These tests describe uncertainty from the
 choice of evaluation images for fixed trained models. Variation between training
 seeds is reported separately, since two seeds are too few for a seed-level
-interval.
+interval. Because ten classes are tested at once in the per-class comparisons, we
+treat a class difference as significant only when it survives a Bonferroni
+correction ($p<0.005$).
 
 % ============================================================================
 \section{Results}
@@ -667,10 +720,14 @@ Table~\ref{tab:schedule} compares the two schedules on Baseline-P2. With seed 0,
 single-phase training was better on every metric at both evaluation sizes: by 3.9
 points mAP@50 and 3.2 points mAP@50:95 at 1280\,px, and by 4.8 and 3.8 points at
 1536\,px. The paired bootstrap at 1536\,px gives a 95\% confidence interval of
-$[4.1, 5.5]$ points ($p<0.001$), and the permutation test gives $p=0.001$, the
+$[4.1, 5.5]$ points ($p<0.002$), and the permutation test gives $p=0.001$, the
 smallest value attainable with 1000 permutations. The two progressive runs differ
 by 0.28 points at 1280\,px, an order of magnitude less than the gap between
-schedules. The second single-phase seed is \tbd[pending].
+schedules. The second single-phase seed is \tbd[pending]. The effect does not
+depend on the stride-4 level: YOLOv11s with its stock three-level head gained 3.3
+points mAP@50 at 1280\,px and 4.0 points at 1536\,px from single-phase training
+(Table~\ref{tab:stride}; 95\% CI at 1536\,px $[3.3, 4.6]$, $p<0.002$, permutation
+$p=0.001$).
 
 \begin{table}[t]
 \centering
@@ -773,10 +830,9 @@ All ten classes improved (Fig.~\ref{fig:perclass}). The largest gain was for
 bicycles ($+7.4$ AP@50 at 1280\,px), followed by vans and tricycles ($+4.7$ each);
 the smallest were for cars ($+0.8$), which were already above 89 AP, and
 awning-tricycles ($+1.3$). Bicycles are among the thinnest objects in the dataset,
-which fits prediction P1, but large vehicles such as buses and trucks also gained
-more than four points, so per-class results alone do not show that the gain is
-concentrated on small objects. Section~\ref{sec:res-size} tests P1 by object size
-directly.
+but large vehicles such as buses and trucks also gained more than four points, so
+per-class results cannot show where the gain comes from. Measured by object size
+(Section~\ref{sec:res-size}), it was concentrated on medium and large objects.
 
 \begin{figure}[t]
 \centering
@@ -817,30 +873,60 @@ explanation is tested directly by these two points.
 \subsection{Detection stride}
 \label{sec:res-stride}
 
-Table~\ref{tab:stride} compares YOLOv11s with three detection levels and
-Baseline-P2, both trained in a single phase at 1280\,px with seed 0.
-\tbd[Describe the result once the P3--P5 run is evaluated.] Adding the P2 level
-costs 0.49M parameters and raises GFLOPs by 74\% at every input size
-(Table~\ref{tab:complexity}), because the stride-4 level operates on a feature map
-with four times as many positions as the stride-8 level.
+Table~\ref{tab:stride} crosses the two schedules with the two detection heads, all
+trained with seed 0. Under single-phase training the stride-4 level added 0.73
+points mAP@50 at 1280\,px (95\% CI $[0.14, 1.26]$, $p=0.012$; permutation
+$p=0.019$) and 0.46 points mAP@50:95 ($[0.05, 0.83]$, $p=0.028$). At 1536\,px the
+difference shrank to 0.37 points ($[-0.14, 0.88]$, $p=0.16$), and under the
+progressive schedule it was $-0.43$ points ($[-1.15, 0.26]$, $p=0.27$). The gain
+from the stride-4 level was 0.8 points larger under single-phase training than
+under the progressive schedule ($[-0.08, 1.74]$, $p=0.07$ at 1536\,px). With one
+seed per configuration and seed-to-seed differences of up to 0.7 points for a
+single model, we do not treat this interaction as established. The three-level
+runs also used larger physical batches than the four-level runs under both
+schedules (Section~\ref{sec:training}).
+
+At the class level, the stride-4 level helped the classes with the smallest boxes.
+With single-phase training at 1280\,px, AP@50 rose by 3.9 points for pedestrians
+($[3.1, 4.7]$), 4.2 points for people ($[3.1, 5.4]$), 2.2 points for motorcycles
+($[1.3, 3.1]$) and 0.9 points for cars ($[0.6, 1.4]$), all $p<0.002$. Tricycles
+and awning-tricycles lost 2.1 and 1.9 points ($p=0.016$ and $0.028$), which does
+not survive the correction for ten classes, and the remaining classes did not
+change significantly. Section~\ref{sec:res-size} shows that these class
+differences follow object size.
+
+The stride-4 level is expensive. It adds 0.49M parameters and raises GFLOPs by
+74\% at every input size (Table~\ref{tab:complexity}), because it operates on a
+feature map with four times as many positions as the stride-8 level. A larger
+input is the cheaper way to reach the same accuracy: YOLOv11s evaluated at 1536\,px
+scored 58.47\% mAP@50 with 124 GFLOPs, more than Baseline-P2 at 1280\,px with 150
+GFLOPs (57.26\%).
 
 \begin{table}[t]
 \centering
-\caption{Effect of the stride-4 detection level. Both models were trained in a
-single phase at 1280\,px (seed 0).}
+\caption{Training schedule crossed with the detection head (seed 0). The lower
+block gives differences between the rows above.}
 \label{tab:stride}
 \small
-\begin{tabular}{lcccc}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llcccc}
 \toprule
- & \multicolumn{2}{c}{1280\,px} & \multicolumn{2}{c}{1536\,px} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Model & mAP@50 & mAP@50:95 & mAP@50 & mAP@50:95 \\
+ & & \multicolumn{2}{c}{1280\,px} & \multicolumn{2}{c}{1536\,px} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Schedule & Detection levels & mAP@50 & mAP@50:95 & mAP@50 & mAP@50:95 \\
 \midrule
-YOLOv11s (P3--P5) & \tbd & \tbd & \tbd & \tbd \\
-Baseline-P2       & 57.26 & 34.66 & 58.84 & 35.82 \\
-$\Delta$          & \tbd & \tbd & \tbd & \tbd \\
+Progressive  & P3--P5 (YOLOv11s)    & 53.25 & 31.62 & 54.50 & 32.55 \\
+             & P2--P5 (Baseline-P2) & 53.32 & 31.47 & 54.07 & 32.01 \\
+Single phase & P3--P5 (YOLOv11s)    & 56.53 & 34.20 & 58.47 & 35.52 \\
+             & P2--P5 (Baseline-P2) & \textbf{57.26} & \textbf{34.66} & \textbf{58.84} & \textbf{35.82} \\
+\midrule
+\multicolumn{2}{l}{Stride-4 level, progressive}  & $+0.07$ & $-0.15$ & $-0.43$ & $-0.54$ \\
+\multicolumn{2}{l}{Stride-4 level, single phase} & $+0.73$ & $+0.46$ & $+0.37$ & $+0.30$ \\
+\multicolumn{2}{l}{Single phase, P3--P5}         & $+3.28$ & $+2.58$ & $+3.97$ & $+2.97$ \\
+\multicolumn{2}{l}{Single phase, P2--P5}         & $+3.94$ & $+3.19$ & $+4.77$ & $+3.81$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \subsection{Feature modules}
@@ -854,10 +940,14 @@ bootstrap intervals at 1536\,px are $[-0.15, 1.27]$ and $[-1.00, 0.33]$, with
 $p=0.11$ and $p=0.41$, and the permutation tests agree ($p=0.12$ and $p=0.37$).
 The mAP@50:95 differences, $+0.17$ and $-0.13$ points, are smaller still ($p=0.48$
 and $p=0.65$). The same test found the schedule effect of
-Section~\ref{sec:res-schedule} with $p<0.001$, so the null result does not come
+Section~\ref{sec:res-schedule} with $p<0.002$, so the null result does not come
 from an insensitive test. Even on the favourable seed, the interval excludes
 improvements larger than about 1.3 points. For this, the modules cost 1.48M
-parameters and 18\% more GFLOPs (Table~\ref{tab:complexity}).
+parameters and 18\% more GFLOPs (Table~\ref{tab:complexity}). Broken down by
+object size (Section~\ref{sec:res-size}), the modules improved no size range
+below 32 input pixels on either seed. The seed-0 gain came from objects of at
+least 32 pixels ($+1.7$ points, $[0.5, 2.7]$) and did not recur with seed 42
+($+0.1$ points).
 
 \begin{table}[t]
 \centering
@@ -893,11 +983,13 @@ mAP@50 by at most 0.01 points relative to the table.
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  scale only axis, width=0.5\linewidth, height=3.3cm,
+  scale only axis, width=0.5\linewidth, height=4.4cm,
   xlabel={Difference in mAP@50 at 1536\,px (points)},
-  xmin=-1.6, xmax=6.0, ymin=0.4, ymax=3.6,
-  ytick={1,2,3},
-  yticklabels={{Single phase vs.\ progressive, seed 0},
+  xmin=-1.6, xmax=6.0, ymin=0.4, ymax=5.6,
+  ytick={1,2,3,4,5},
+  yticklabels={{Single phase vs.\ progressive, Baseline-P2},
+               {Single phase vs.\ progressive, YOLOv11s},
+               {Stride-4 level, single phase},
                {MEIS + FRM vs.\ none, seed 42},
                {MEIS + FRM vs.\ none, seed 0}},
   xmajorgrids, grid style={gray!20},
@@ -905,18 +997,23 @@ mAP@50 by at most 0.01 points relative to the table.
 \addplot[only marks, mark=*, mark size=2.2pt, color=cMod,
          error bars/.cd, x dir=both, x explicit,
          error bar style={thick, color=cMod}]
-  coordinates {(0.59,3) += (0.68,0) -= (0.74,0)
-               (-0.33,2) += (0.66,0) -= (0.67,0)};
+  coordinates {(0.59,5) += (0.68,0) -= (0.74,0)
+               (-0.33,4) += (0.66,0) -= (0.67,0)};
+\addplot[only marks, mark=triangle*, mark size=2.6pt, color=cGreen,
+         error bars/.cd, x dir=both, x explicit,
+         error bar style={thick, color=cGreen}]
+  coordinates {(0.36,3) += (0.52,0) -= (0.50,0)};
 \addplot[only marks, mark=square*, mark size=2.2pt, color=cSP,
          error bars/.cd, x dir=both, x explicit,
          error bar style={thick, color=cSP}]
-  coordinates {(4.78,1) += (0.71,0) -= (0.67,0)};
-\draw[gray, dashed] (axis cs:0,0.4) -- (axis cs:0,3.6);
+  coordinates {(3.98,2) += (0.63,0) -= (0.66,0)
+               (4.78,1) += (0.71,0) -= (0.67,0)};
+\draw[gray, dashed] (axis cs:0,0.4) -- (axis cs:0,5.6);
 \end{axis}
 \end{tikzpicture}
 \caption{Paired differences with 95\% bootstrap confidence intervals over the 548
-validation images. The module intervals include zero; the schedule interval does
-not.}
+validation images (seed 0 unless stated). The module and stride-4 intervals include
+zero; the schedule intervals do not.}
 \label{fig:forest}
 \end{figure}
 
@@ -1018,28 +1115,155 @@ images.
 \subsection{Accuracy by object size}
 \label{sec:res-size}
 
-Table~\ref{tab:size} splits AP@50 by object area using the COCO
-ranges~\cite{coco}, computed in original image pixels. \tbd[Describe once the
-size-stratified evaluation is available, and state whether the gains concentrate
-on small objects as P1 predicts.]
+Table~\ref{tab:size} gives AP@50 in the COCO size ranges, and
+Fig.~\ref{fig:size} shows the three comparisons by object size in network-input
+pixels, the scale on which the predictions of Section~\ref{sec:sampling} are made.
+
+\paragraph{Detection stride (P1)}
+The stride-4 level changed accuracy where the sampling argument says it should
+(Fig.~\ref{fig:size}a). For objects of 4 to 8 input pixels it added 4.0 points
+AP@50 under the progressive schedule ($[1.7, 6.6]$) and 6.7 points under
+single-phase training ($[4.4, 9.0]$), and for objects of 8 to 16 pixels 2.8 and
+4.9 points ($[1.6, 3.9]$ and $[3.7, 6.1]$). For objects of 16 to 32 pixels it
+changed nothing (0.4 and 0.1 points), and for objects of at least 32 pixels it
+lowered AP@50 by 2.1 and 1.1 points ($[-3.0, -1.0]$ and $[-1.9, -0.3]$). The gain
+thus disappears once objects span about two stride-8 cells and turns into a loss
+beyond four, and the losses on larger objects explain why mAP@50 barely moved. Cars, which have at least 655
+boxes in every range, show the same pattern on their own: 2.9 to 4.0 points below
+16 pixels and less than one point above.
+
+\paragraph{Feature modules (P2)}
+MEIS with FRM changed AP@50 by between $-1.2$ and $+0.3$ points in the three
+ranges below 32 pixels on the two seeds (Fig.~\ref{fig:size}c), and only one of
+these six intervals excluded zero, the $-1.2$ points for 8 to 16 pixels with seed
+42. Averaged over both seeds, COCO small objects lost 0.8 points ($[-1.5, -0.1]$).
+The only significant gains, 1.7 points for objects of at least 32 pixels and 1.4
+points for COCO medium objects with seed 0, did not recur with seed 42 (0.1 and
+$-0.1$ points). Under the same schedule and on the
+same objects, the stride-4 level gained 2.8 to 4.0 points below 16 pixels. This is
+what P2 predicts: reweighting features after downsampling did not help the objects
+that a finer stride did help.
+
+\paragraph{Training schedule (P3)}
+Single-phase training did not concentrate its gain on small objects
+(Fig.~\ref{fig:size}b). For YOLOv11s it changed AP@50 by $-0.6$ and $+0.5$ points
+for objects below 16 input pixels, neither significant, but added 2.7 points for
+16 to 32 pixels and 5.5 points for objects of at least 32 pixels ($[4.6, 6.7]$).
+In the COCO ranges the gains were 1.6 points for small, 5.2 for medium and 6.1 for
+large objects. With the stride-4 level, single-phase training also helped objects
+of 8 to 16 pixels, by 2.7 points, and this exceeded the corresponding gain for
+YOLOv11s by 2.1 points ($[0.8, 3.5]$). The largest gain was again for objects of
+at least 32 pixels (6.5 points, $[5.6, 7.6]$). P3 predicted the opposite ordering.
+
+A mismatch between training and test scale could produce a deficit on larger
+objects: the progressive models saw objects at smaller pixel sizes for 300 of their
+350 epochs. If that were the cause, evaluating them at 1024\,px would raise their AP
+on medium and large objects. It did not. Medium objects changed by $-0.9$ points
+($[-1.8, -0.1]$) for YOLOv11s and $+0.1$ points ($[-0.8, 0.9]$) for Baseline-P2,
+and large objects by less than 0.5 points. At 1024\,px, single-phase training still
+led on medium objects by 4.5 and 4.1 points (both $p<0.002$). The single-phase
+models were, however, more tied to their training size: evaluated at 1024 instead
+of 1280\,px, they lost 1.0 points more than the progressive models on small objects
+($[0.3, 1.7]$) and 1.3 points more on medium objects ($[0.7, 2.1]$).
 
 \begin{table}[t]
 \centering
-\caption{AP@50 at 1280\,px by object area, using COCO area ranges in original
-image pixels (seed 0).}
+\caption{AP@50 at 1280\,px by object size, using the COCO area ranges in
+original-image pixels, with the number of ground-truth boxes in brackets. Size
+columns average over the classes with at least 100 boxes in the range (all ten
+for small and medium objects, cars and vans for large objects); the first column is
+the standard mAP@50.}
 \label{tab:size}
 \small
-\begin{tabular}{lccc}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lllcccc}
 \toprule
-Model and schedule & Small ($<32^2$) & Medium & Large ($>96^2$) \\
+Schedule & Model & Seed & All sizes & Small [26{,}586] & Medium [11{,}105] & Large [1{,}068] \\
 \midrule
-Baseline-P2, progressive        & \tbd & \tbd & \tbd \\
-Baseline-P2, single phase       & \tbd & \tbd & \tbd \\
-YOLOv11s (P3--P5), single phase & \tbd & \tbd & \tbd \\
+Progressive  & YOLOv11s (P3--P5)        & 0  & 53.2 & 46.1 & 64.2 & 78.2 \\
+             & Baseline-P2              & 0  & 53.3 & 47.0 & 62.5 & 79.6 \\
+             & Baseline-P2              & 42 & 53.6 & 46.6 & 63.6 & 77.9 \\
+             & Baseline-P2 + MEIS + FRM & 0  & 53.9 & 46.5 & 63.9 & 79.4 \\
+             & Baseline-P2 + MEIS + FRM & 42 & 53.2 & 45.5 & 63.5 & 77.8 \\
+\midrule
+Single phase & YOLOv11s (P3--P5)        & 0  & 56.5 & 47.6 & \textbf{69.3} & \textbf{84.2} \\
+             & Baseline-P2              & 0  & \textbf{57.3} & \textbf{49.0} & 68.5 & 83.2 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style={group size=3 by 1, horizontal sep=0.9cm,
+               y descriptions at=edge left},
+  width=5.6cm, height=5.2cm,
+  xmin=0.5, xmax=4.5, ymin=-4.5, ymax=10.5,
+  xtick={1,2,3,4}, xticklabels={4--8, 8--16, 16--32, $\geq$32},
+  xlabel={Object size (input pixels)},
+  ymajorgrids, grid style={gray!20},
+  legend cell align=left,
+  legend style={font=\scriptsize, draw=none, fill=white, fill opacity=0.85,
+                text opacity=1},
+  title style={font=\footnotesize},
+]
+\nextgroupplot[title={(a) Stride-4 level: P2 $-$ P3},
+               ylabel={Difference in AP@50 (points)},
+               legend style={at={(0.97,0.97)}, anchor=north east}]
+\draw[gray!70, dashed] (axis cs:0.5,0) -- (axis cs:4.5,0);
+\addplot[only marks, mark=square*, mark size=1.8pt, color=cProg,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=cProg}]
+  coordinates {(0.88,4.04) += (0,2.57) -= (0,2.40) (1.88,2.78) += (0,1.13) -= (0,1.22)
+               (2.88,0.39) += (0,0.88) -= (0,0.94) (3.88,-2.05) += (0,1.05) -= (0,0.99)};
+\addlegendentry{Progressive}
+\addplot[only marks, mark=*, mark size=1.9pt, color=cSP,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=cSP}]
+  coordinates {(1.12,6.71) += (0,2.30) -= (0,2.28) (2.12,4.90) += (0,1.19) -= (0,1.21)
+               (3.12,0.06) += (0,0.72) -= (0,0.74) (4.12,-1.05) += (0,0.77) -= (0,0.89)};
+\addlegendentry{Single phase}
+\nextgroupplot[title={(b) Single phase $-$ progressive},
+               legend style={at={(0.03,0.97)}, anchor=north west}]
+\draw[gray!70, dashed] (axis cs:0.5,0) -- (axis cs:4.5,0);
+\addplot[only marks, mark=diamond*, mark size=2.3pt, color=gray!60!black,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=gray!60!black}]
+  coordinates {(0.88,-0.59) += (0,2.06) -= (0,1.84) (1.88,0.54) += (0,0.89) -= (0,0.99)
+               (2.88,2.65) += (0,0.82) -= (0,0.87) (3.88,5.54) += (0,1.13) -= (0,0.94)};
+\addlegendentry{YOLOv11s (P3--P5)}
+\addplot[only marks, mark=triangle*, mark size=2.3pt, color=cGreen,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=cGreen}]
+  coordinates {(1.12,2.07) += (0,1.99) -= (0,2.28) (2.12,2.66) += (0,1.14) -= (0,1.04)
+               (3.12,2.32) += (0,0.93) -= (0,0.92) (4.12,6.54) += (0,1.05) -= (0,0.96)};
+\addlegendentry{Baseline-P2}
+\nextgroupplot[title={(c) MEIS + FRM $-$ none},
+               legend style={at={(0.97,0.97)}, anchor=north east}]
+\draw[gray!70, dashed] (axis cs:0.5,0) -- (axis cs:4.5,0);
+\addplot[only marks, mark=*, mark size=1.9pt, color=cMod,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=cMod}]
+  coordinates {(0.88,0.21) += (0,2.06) -= (0,2.15) (1.88,0.30) += (0,1.29) -= (0,1.14)
+               (2.88,0.12) += (0,0.95) -= (0,0.96) (3.88,1.68) += (0,1.07) -= (0,1.16)};
+\addlegendentry{Seed 0}
+\addplot[only marks, mark=o, mark size=1.9pt, color=cMod!70!black,
+         error bars/.cd, y dir=both, y explicit, error bar style={thick, color=cMod!55}]
+  coordinates {(1.12,-0.75) += (0,2.41) -= (0,2.44) (2.12,-1.20) += (0,1.19) -= (0,1.17)
+               (3.12,0.01) += (0,0.97) -= (0,0.99) (4.12,0.10) += (0,1.31) -= (0,1.07)};
+\addlegendentry{Seed 42}
+\end{groupplot}
+\end{tikzpicture}%
+}
+\caption{Differences in AP@50 at 1280\,px by object size in network-input pixels,
+with 95\% paired bootstrap confidence intervals over the validation images. One
+stride-4 cell spans 4 pixels and one stride-8 cell 8 pixels. Panels (a) and (b)
+use seed 0; panel (c) compares models trained with the progressive schedule. Each
+point averages over the classes with at least 100 boxes in its range.}
+\label{fig:size}
+\end{figure}
+
+% UAVDT cross-dataset evaluation: not run. The subsection is disabled with
+% \iffalse ... \fi; restore it only if the evaluation is carried out.
+\iffalse
 \subsection{Cross-dataset evaluation on UAVDT}
 \label{sec:res-uavdt}
 
@@ -1065,6 +1289,7 @@ Baseline-P2, single phase & \tbd & \tbd & \tbd & \tbd \\
 \bottomrule
 \end{tabular}
 \end{table}
+\fi
 
 \subsection{Relation to published results}
 \label{sec:res-published}
@@ -1076,7 +1301,10 @@ method. MEIS-YOLO~\cite{meis-yolo} reports 36.0\% AP@50 on the VisDrone-DET2019
 test set, for a network trained from scratch at 640\,px, against 34.6\% for its
 YOLOv11m baseline. Our models were evaluated on the validation set, start from
 COCO weights and use 1280\,px inputs, so the numbers are not on a common scale and
-the table should not be read as a ranking. Region-based detectors that process
+the table should not be read as a ranking. The evaluation code matters as well:
+Ultralytics releases that extend the precision--recall curve to a recall of one
+give mAP@50 values 0.5 to 0.7 points higher than the definition we use for the
+same detections (Section~\ref{sec:eval}). Region-based detectors that process
 magnified crops~\cite{clusdet,li2020dmnet,huang2022ufpmp} use several network
 passes per image and belong to a different accuracy--cost regime.
 
@@ -1097,6 +1325,7 @@ MEIS-YOLO~\cite{meis-yolo}                & test & 640  & no  & 36.0 & 15.04 \\
 % source, and fill in split, input size and initialization for each.
 \midrule
 Baseline-P2, progressive (ours)           & val  & 1280 & yes & 53.3 &  9.92 \\
+YOLOv11s (P3--P5), single phase (ours)    & val  & 1280 & yes & 56.5 &  9.43 \\
 Baseline-P2, single phase (ours)          & val  & 1280 & yes & 57.3 &  9.92 \\
 \bottomrule
 \end{tabular}%
@@ -1108,73 +1337,111 @@ Baseline-P2, single phase (ours)          & val  & 1280 & yes & 57.3 &  9.92 \\
 \label{sec:discussion}
 % ============================================================================
 
+\subsection{What the sampling account explains}
+
+The size breakdown supports two of the three predictions of
+Section~\ref{sec:sampling}. The stride-4 level raised accuracy for the objects the
+argument singles out, those spanning fewer than two stride-8 cells, and did not
+help larger ones. MEIS and FRM, which act on features that have already
+been sampled at stride $r$, did not improve those same objects on either seed,
+although a finer stride raised their AP by up to 7 points. Both modules are
+residual, so they can stay close to an identity mapping when reweighting does not
+help, and the factorial ablation found no benefit from their multi-scale or
+adaptive components. Two caveats apply to the module results. Our MEIS block is
+not the MEIS module of MEIS-YOLO, and the module experiments used the progressive
+schedule, so whether the modules behave differently when trained at 1280\,px
+throughout remains untested.
+
+The stride-4 level also lowered AP for objects of at least 32 pixels. We did not
+investigate the cause. One possibility is that the extra level changes how the
+task-aligned assigner distributes positive samples across levels, which could
+leave the coarser levels with fewer positives for large objects.
+
 \subsection{Why did the progressive schedule do worse?}
 
-The two schedules differ in more than resolution. The progressive schedule spends
-200 of its 350 epochs at 640 or 800\,px, where Table~\ref{tab:amin} predicts that
-objects smaller than 10 to 12.5 pixels cannot be assigned targets even at stride 4.
-It also restarts the learning rate with a warm-up at every phase boundary, which
-raises the learning rate again after the previous phase has annealed, and it
-changes augmentation and loss weights between phases. We did not separate these
-factors, so we cannot say how much each contributed; testing a single-resolution
-schedule with phase-wise restarts, or a progressive schedule without them, would
-answer that. The checkpoint results do rule out one argument for the progressive
-schedule, namely faster convergence, because single-phase training matched its
-final accuracy after 61 epochs.
+The schedule effect is the result the sampling account does not explain. If the
+low-resolution phases had mainly deprived small objects of training targets, the
+deficit would be largest for small objects. It was largest for medium and large
+objects instead, and for YOLOv11s it was absent below 16 input pixels. For
+Baseline-P2 this is less surprising in hindsight, because even at 640\,px only
+5.8\% of the validation objects are smaller than one stride-4 cell. For YOLOv11s it
+is harder to reconcile with the account, since 31.0\% of the objects fall below one
+stride-8 cell at 640\,px. A mismatch between training and test scale does not
+explain the deficit either, since the progressive models did not improve on larger
+objects when evaluated at 1024\,px.
 
-\subsection{Why did the modules not help?}
-
-MEIS and FRM act on features that have already been sampled at stride $r$. By the
-argument of Section~\ref{sec:sampling}, they can reweight what the backbone
-recorded but cannot recover objects that fell between anchor points, and their
-residual design lets them stay close to an identity mapping when reweighting does
-not help. The factorial ablation fits this reading: the variants differed from
-each other by a few tenths of a point, regardless of dilation or gating. Two
-caveats apply. Our MEIS block is not the MEIS module of MEIS-YOLO, and the module
-experiments used the progressive schedule; whether they behave differently when
-trained at 1280\,px throughout remains untested.
+The remaining differences between the schedules concern optimization and
+regularization. The progressive schedule restarts the learning rate with a warm-up
+at every phase boundary, spends its only 50 epochs at 1280\,px with an initial
+learning rate of $5\times10^{-4}$, and changes augmentation and loss weights
+between phases. We did not separate these factors; training a single-resolution schedule
+with phase-wise restarts, and a progressive schedule without them, would. The one
+part of the schedule effect that fits the sampling account is that Baseline-P2
+gained more than YOLOv11s from single-phase training on objects of 8 to 16 pixels,
+as expected if the stride-4 level needs high-resolution training to receive
+targets for small objects. The checkpoint results also rule out faster convergence
+as an argument for the progressive schedule, since single-phase training matched
+its final accuracy after 61 epochs.
 
 \subsection{Practical recommendations}
 
-Three recommendations follow from these experiments. First, train at the input
-size that will be used at deployment before trying resolution schedules. Second,
-before adding modules, check the finest detection stride against the object size
-distribution with Eq.~\eqref{eq:amin}. Third, compare designs with at least two or
-three seeds, test paired differences over the evaluation images, and report
-training compute alongside accuracy.
+Four recommendations follow from these experiments. First, train at the input size
+that will be used at deployment: the single-phase models were the most accurate at
+their training size but lost more than the progressive models when evaluated at a
+smaller one. Second, before adding modules, compare the object size distribution in
+network-input pixels with the finest detection stride. A stride-4 level pays off
+when many objects span fewer than two stride-8 cells, but it costs accuracy on
+large objects and 74\% more computation, and a larger input size may reach the
+same accuracy at lower cost. Third, report accuracy by object size, because a small
+change in mAP can hide opposite effects on small and large objects. Fourth, compare
+designs with at least two or three seeds, test paired differences over the
+evaluation images, and report training compute alongside accuracy.
 
 \subsection{Limitations}
 
-The study has several limitations. Most configurations were trained with two seeds,
-and the single-phase schedule \tbd[with one seed / with two seeds]. VisDrone is
-the only dataset with small non-vehicle objects in our evaluation, and UAVDT
-covers only vehicles. We studied one detector family at one size, so larger models
-and transformer-based detectors may behave differently; we chose YOLOv11s because
-it is widely used, has a maintained implementation with pretrained weights, and
-is a realistic size for drone platforms. The schedule comparison changes
-resolution, learning-rate restarts and augmentation together. The module
-experiments used the progressive schedule, and the factorial ablation used a
-shortened one. We did not evaluate robustness to motion blur, noise or illumination
-changes. Finally, the sampling argument is a heuristic, and FPS figures depend on
-the hardware.
+The study has several limitations. The module comparison was repeated with two
+seeds, but each cell of the schedule-by-stride comparison rests on one seed
+\tbd[except single-phase Baseline-P2, with two], so the interaction between
+schedule and stride is not established. The three- and four-level detectors were
+trained with different physical batch sizes, which changes batch-normalization
+statistics. Checkpoints were selected on the validation images used for reporting.
+This makes absolute accuracy slightly optimistic for every model, and selection
+over up to 350 single-phase epochs may favour those runs somewhat more than
+selection within the 50-epoch final progressive phase. Size-resolved AP averages
+only classes with at least 100 boxes in a range, which leaves two classes for large
+objects. VisDrone-DET2019 is the only dataset in our evaluation. We studied one
+detector family at one size, so larger models and transformer-based detectors may
+behave differently; we chose YOLOv11s because it is widely used, has a maintained
+implementation with pretrained weights, and is a realistic size for drone
+platforms. The schedule comparison changes learning-rate restarts, augmentation
+and loss weights together with resolution. The module experiments used the
+progressive schedule, and the factorial ablation a shortened one. We did not
+evaluate robustness to motion blur, noise or illumination changes. Finally, the
+sampling argument is a heuristic, and FPS figures depend on the hardware.
 
 % ============================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 % ============================================================================
 
-For YOLOv11s on VisDrone-DET2019, the design decisions that changed small-object
-accuracy were the ones that changed how densely objects are sampled. Training at
-1280\,px in a single phase outperformed a four-phase progressive schedule by 3.9
-points mAP@50 at the same epoch budget and matched its accuracy with a third of the
-compute, and the stride-4 detection level \tbd[result]. Edge selection with
-adaptive gating and CBAM-style recalibration did not produce measurable gains once
-runs were matched and repeated, and neither multi-scale dilation nor adaptive gating
-did better than a plain convolution of equal size. These results do not show that
-feature modules cannot help small-object detection, but they suggest that such
-modules should be compared against baselines trained at the same resolution and
-budget, with repeated seeds and paired tests, before their gains are attributed to
-the modules themselves.
+For YOLOv11s on VisDrone-DET2019, controlled comparisons separated three kinds of
+design decision. The finest detection stride changed small-object accuracy in the
+way a sampling argument predicts: a stride-4 level added 3 to 7 points AP@50 for
+objects spanning fewer than two stride-8 cells and cost 1 to 2 points on objects
+larger than 32 pixels, which left mAP almost unchanged. Edge selection with
+adaptive gating and CBAM-style recalibration, which act after downsampling,
+improved no size range below 32 pixels on either of two seeds, and neither
+multi-scale dilation nor adaptive gating did better than a plain convolution of
+equal size. Single-resolution training at 1280\,px outperformed a four-phase
+progressive schedule by 3.3 to 3.9 points mAP@50 at the same epoch budget, with and
+without the stride-4 level, and matched its accuracy with a third of the compute.
+Its gain came mainly from medium and large objects and did not vanish at a smaller
+test size, so it is better explained by how the two schedules train the network
+than by how densely they sample small objects. These results do not show that feature modules
+or resolution schedules cannot help small-object detection. They show that such
+changes should be compared with baselines trained at the same resolution and
+budget, across seeds, with paired tests and a breakdown by object size, before a
+gain is attributed to the mechanism it was designed for.
 
 % ============================================================================
 \section*{CRediT authorship contribution statement}
@@ -1186,16 +1453,17 @@ personal relationships that could have appeared to influence the work reported i
 this paper. \tbd[Confirm.]
 
 \section*{Data availability}
-VisDrone-DET2019 and UAVDT are publicly available. \tbd[State whether and where the
-code, configurations and trained weights will be released.]
+VisDrone-DET2019 is publicly available. \tbd[State whether and where the code,
+configurations, trained weights and per-image evaluation records will be
+released.]
 
 \section*{Declaration of generative AI and AI-assisted technologies in the writing process}
 \tbd[Complete according to the journal's policy, describing any AI tools used in
 preparing the manuscript and the code.]
 
 \section*{Acknowledgements}
-The authors thank the VisDrone and UAVDT teams for the benchmarks and the
-Ultralytics team for the YOLOv11 implementation.
+The authors thank the VisDrone team for the benchmark and the Ultralytics team for
+the YOLOv11 implementation.
 
 % ============================================================================
 \appendix

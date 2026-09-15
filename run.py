@@ -251,6 +251,26 @@ def cmd_significance(cfg, args):
         device=cfg['train'].get('device'), seed_deltas=seed_deltas)
 
 
+def cmd_sizeap(cfg, args):
+    """AP by object size from the validator's own matching (Table tab:size)."""
+    from meiscf.size_eval import run_size_ap
+    data_yaml = _resolve_data_yaml(cfg)
+    if not args.models:
+        sys.exit("sizeap requires --models LABEL=WEIGHTS [LABEL=WEIGHTS ...]")
+    models = {}
+    for item in args.models:
+        if '=' not in item:
+            sys.exit(f"--models entries must look like LABEL=WEIGHTS, got '{item}'")
+        label, weights = item.split('=', 1)
+        if not Path(weights).exists():
+            sys.exit(f"weights not found for '{label}': {weights}")
+        models[label] = weights
+    out = Path(args.out or (Path(_p(cfg, 'runs_dir')) / 'size_ap'))
+    run_size_ap(models, data_yaml, out, imgszs=tuple(args.imgszs or [1280]),
+                max_det=cfg['eval'].get('max_det', 600),
+                device=cfg['train'].get('device'))
+
+
 def cmd_heatmaps(cfg, args):
     from meiscf.heatmaps import (comparative_heatmaps, heatmaps_for_image,
                                  sample_val_images)
@@ -315,7 +335,7 @@ def build_parser():
     p.add_argument('command',
                    choices=['smoke', 'prepare', 'train', 'ablation', 'evaluate',
                             'heatmaps', 'visualize', 'multiseed',
-                            'significance', 'all'])
+                            'significance', 'sizeap', 'all'])
     p.add_argument('--config', default='config.yaml')
     p.add_argument('--variant', default=None, help="override train.variant")
     p.add_argument('--weights', default=None, help="model checkpoint (evaluate/heatmaps)")
@@ -338,6 +358,10 @@ def build_parser():
     p.add_argument('--n-perm', type=int, default=1000, help="significance: permutations")
     p.add_argument('--seed-deltas', nargs='*', default=None,
                    help="significance: per-seed paired deltas in pp for the seed-level test")
+    p.add_argument('--models', nargs='*', default=None,
+                   help="sizeap: LABEL=WEIGHTS pairs to evaluate")
+    p.add_argument('--imgszs', nargs='*', type=int, default=None,
+                   help="sizeap: input sizes (default: 1280)")
     p.add_argument('--variants', nargs='*', default=None,
                    help="multiseed: variants to run (default: meis_p2 baseline_p2)")
     p.add_argument('--seeds', nargs='*', default=None,
@@ -379,7 +403,7 @@ def main():
         'ablation': cmd_ablation, 'evaluate': cmd_evaluate,
         'heatmaps': cmd_heatmaps, 'visualize': cmd_visualize,
         'multiseed': cmd_multiseed, 'significance': cmd_significance,
-        'all': cmd_all,
+        'sizeap': cmd_sizeap, 'all': cmd_all,
     }[args.command](cfg, args)
 
 

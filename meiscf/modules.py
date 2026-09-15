@@ -62,6 +62,13 @@ class MEIS(nn.Module):
             else:
                 raise ValueError(f"gate must be 'adaptive' or 'static', got {gate!r}")
 
+    def __setstate__(self, state):
+        # Checkpoints saved before the gate option existed hold no gate_mode;
+        # every MEIS block trained then used the adaptive gate.
+        super().__setstate__(state)
+        if 'gate_mode' not in self.__dict__:
+            self.gate_mode = 'adaptive'
+
     def forward(self, x):
         e = 0
         if self.gate_mode == 'adaptive':
