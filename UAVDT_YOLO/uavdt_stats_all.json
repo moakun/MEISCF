@@ -1,0 +1,66 @@
+{
+  "split": "all",
+  "sequences": 11,
+  "frame_stride": 5,
+  "images": 1535,
+  "boxes": 12450,
+  "class_counts": {
+    "car": 11681,
+    "truck": 583,
+    "bus": 186
+  },
+  "boxes_dropped_in_ignore_regions": 10,
+  "images_with_ignore_regions": 504,
+  "ignore_regions": 1024,
+  "object_size_px": {
+    "median": 38.47076812334269,
+    "share_below_32px": 0.3067469879518072,
+    "share_below_16px": 0.02497991967871486
+  },
+  "per_sequence": {
+    "M0101": {
+      "frames_total": 407,
+      "frames_kept": 82
+    },
+    "M0201": {
+      "frames_total": 1076,
+      "frames_kept": 216
+    },
+    "M0202": {
+      "frames_total": 291,
+      "frames_kept": 59
+    },
+    "M0203": {
+      "frames_total": 1007,
+      "frames_kept": 202
+    },
+    "M0204": {
+      "frames_total": 350,
+      "frames_kept": 70
+    },
+    "M0205": {
+      "frames_total": 646,
+      "frames_kept": 130
+    },
+    "M0206": {
+      "frames_total": 562,
+      "frames_kept": 113
+    },
+    "M0207": {
+      "frames_total": 885,
+      "frames_kept": 177
+    },
+    "M0208": {
+      "frames_total": 265,
+      "frames_kept": 53
+    },
+    "M0209": {
+      "frames_total": 1576,
+      "frames_kept": 316
+    },
+    "M0210": {
+      "frames_total": 583,
+      "frames_kept": 117
+    }
+  }
+}

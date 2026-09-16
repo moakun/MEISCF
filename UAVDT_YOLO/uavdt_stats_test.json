@@ -1,0 +1,37 @@
+{
+  "split": "test",
+  "sequences": 4,
+  "frame_stride": 5,
+  "images": 701,
+  "boxes": 6037,
+  "class_counts": {
+    "car": 5984,
+    "truck": 53
+  },
+  "boxes_dropped_in_ignore_regions": 2,
+  "images_with_ignore_regions": 87,
+  "ignore_regions": 112,
+  "object_size_px": {
+    "median": 55.560777532356404,
+    "share_below_32px": 0.17889680304787145,
+    "share_below_16px": 0.003478548948153056
+  },
+  "per_sequence": {
+    "M0203": {
+      "frames_total": 1007,
+      "frames_kept": 202
+    },
+    "M0205": {
+      "frames_total": 646,
+      "frames_kept": 130
+    },
+    "M0208": {
+      "frames_total": 265,
+      "frames_kept": 53
+    },
+    "M0209": {
+      "frames_total": 1576,
+      "frames_kept": 316
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "p3_prog_1280": {
+    "label": "p3_prog",
+    "weights": "runs/ablation/A1_baseline_progressive/phase4/weights/best.pt",
+    "imgsz": 1280,
+    "merge_van": true,
+    "mAP50": 0.4745866541654394,
+    "mAP50-95": 0.28873278378704303,
+    "precision": 0.45449395271137294,
+    "recall": 0.6480487909953611,
+    "per_class": {
+      "car": {
+        "AP50": 0.7220044577953724,
+        "AP50-95": 0.3738089706965292
+      },
+      "truck": {
+        "AP50": 0.15837359876103674,
+        "AP50-95": 0.0702507660957816
+      },
+      "bus": {
+        "AP50": 0.543381905939909,
+        "AP50-95": 0.4221386145688183
+      }
+    },
+    "images": 1535,
+    "detections_dropped_in_ignore_regions": 84378,
+    "van_detections_merged_into_car": 52297,
+    "identity": {
+      "weights": "/home/m019/Desktop/MEISCF/runs/ablation/A1_baseline_progressive/phase4/weights/best.pt",
+      "weights_size": 19246931,
+      "weights_mtime": 1781205145,
+      "data": "/home/m019/Desktop/MEISCF/UAVDT_YOLO/UAVDT.yaml",
+      "imgsz": 1280,
+      "conf": 0.001,
+      "iou": 0.5,
+      "max_det": 600,
+      "merge_van": true
+    }
+  },
+  "p2_prog_1280": {
+    "label": "p2_prog",
+    "weights": "runs/meiscf/baseline_p2_20260708_173650/phase4/weights/best.pt",
+    "imgsz": 1280,
+    "merge_van": true,
+    "mAP50": 0.5089972038995151,
+    "mAP50-95": 0.30380496704209775,
+    "precision": 0.4875641667039496,
+    "recall": 0.7320621061668874,
+    "per_class": {
+      "car": {
+        "AP50": 0.7401754882921242,
+        "AP50-95": 0.3917900140972102
+      },
+      "truck": {
+        "AP50": 0.24496712996079983,
+        "AP50-95": 0.10856894102456671
+      },
+      "bus": {
+        "AP50": 0.5418489934456213,
+        "AP50-95": 0.4110559460045164
+      }
+    },
+    "images": 1535,
+    "detections_dropped_in_ignore_regions": 89097,
+    "van_detections_merged_into_car": 50933,
+    "identity": {
+      "weights": "/home/m019/Desktop/MEISCF/runs/meiscf/baseline_p2_20260708_173650/phase4/weights/best.pt",
+      "weights_size": 20630461,
+      "weights_mtime": 1783569901,
+      "data": "/home/m019/Desktop/MEISCF/UAVDT_YOLO/UAVDT.yaml",
+      "imgsz": 1280,
+      "conf": 0.001,
+      "iou": 0.5,
+      "max_det": 600,
+      "merge_van": true
+    }
+  },
+  "p3_sp_1280": {
+    "label": "p3_sp",
+    "weights": "runs/meiscf/baseline_20260915_034945/single1280/weights/best.pt",
+    "imgsz": 1280,
+    "merge_van": true,
+    "mAP50": 0.48724165521769186,
+    "mAP50-95": 0.2901010999070917,
+    "precision": 0.47140220388955817,
+    "recall": 0.769912700577477,
+    "per_class": {
+      "car": {
+        "AP50": 0.7444131916891632,
+        "AP50-95": 0.3928295557743523
+      },
+      "truck": {
+        "AP50": 0.23063014871687412,
+        "AP50-95": 0.10315699756419412
+      },
+      "bus": {
+        "AP50": 0.4866816252470382,
+        "AP50-95": 0.3743167463827287
+      }
+    },
+    "images": 1535,
+    "detections_dropped_in_ignore_regions": 89401,
+    "van_detections_merged_into_car": 57154,
+    "identity": {
+      "weights": "/home/m019/Desktop/MEISCF/runs/meiscf/baseline_20260915_034945/single1280/weights/best.pt",
+      "weights_size": 19284755,
+      "weights_mtime": 1789484347,
+      "data": "/home/m019/Desktop/MEISCF/UAVDT_YOLO/UAVDT.yaml",
+      "imgsz": 1280,
+      "conf": 0.001,
+      "iou": 0.5,
+      "max_det": 600,
+      "merge_van": true
+    }
+  },
+  "p2_sp_1280": {
+    "label": "p2_sp",
+    "weights": "runs/meiscf/baseline_p2_20260912_193123/single1280/weights/best.pt",
+    "imgsz": 1280,
+    "merge_van": true,
+    "mAP50": 0.4749240184225943,
+    "mAP50-95": 0.2823348173852045,
+    "precision": 0.47144176567430823,
+    "recall": 0.7304618767078445,
+    "per_class": {
+      "car": {
+        "AP50": 0.7648929485333194,
+        "AP50-95": 0.4111716441151529
+      },
+      "truck": {
+        "AP50": 0.2076650546867907,
+        "AP50-95": 0.087610291111273
+      },
+      "bus": {
+        "AP50": 0.45221405204767295,
+        "AP50-95": 0.34822251692918776
+      }
+    },
+    "images": 1535,
+    "detections_dropped_in_ignore_regions": 98745,
+    "van_detections_merged_into_car": 53646,
+    "identity": {
+      "weights": "/home/m019/Desktop/MEISCF/runs/meiscf/baseline_p2_20260912_193123/single1280/weights/best.pt",
+      "weights_size": 20668925,
+      "weights_mtime": 1789351253,
+      "data": "/home/m019/Desktop/MEISCF/UAVDT_YOLO/UAVDT.yaml",
+      "imgsz": 1280,
+      "conf": 0.001,
+      "iou": 0.5,
+      "max_det": 600,
+      "merge_van": true
+    }
+  },
+  "meis_prog_1280": {
+    "label": "meis_prog",
+    "weights": "runs/meiscf/meis_p2_20260623_002811/phase4/weights/best.pt",
+    "imgsz": 1280,
+    "merge_van": true,
+    "mAP50": 0.43198974860574246,
+    "mAP50-95": 0.25516674398748657,
+    "precision": 0.4329733325542635,
+    "recall": 0.676518196140235,
+    "per_class": {
+      "car": {
+        "AP50": 0.7320883019765154,
+        "AP50-95": 0.3867410474174008
+      },
+      "truck": {
+        "AP50": 0.1306251285115776,
+        "AP50-95": 0.055010146485131625
+      },
+      "bus": {
+        "AP50": 0.4332558153291343,
+        "AP50-95": 0.3237490380599274
+      }
+    },
+    "images": 1535,
+    "detections_dropped_in_ignore_regions": 84970,
+    "van_detections_merged_into_car": 51203,
+    "identity": {
+      "weights": "/home/m019/Desktop/MEISCF/runs/meiscf/meis_p2_20260623_002811/phase4/weights/best.pt",
+      "weights_size": 23704793,
+      "weights_mtime": 1782238526,
+      "data": "/home/m019/Desktop/MEISCF/UAVDT_YOLO/UAVDT.yaml",
+      "imgsz": 1280,
+      "conf": 0.001,
+      "iou": 0.5,
+      "max_det": 600,
+      "merge_van": true
+    }
+  }
+}

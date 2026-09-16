@@ -251,12 +251,10 @@ def cmd_significance(cfg, args):
         device=cfg['train'].get('device'), seed_deltas=seed_deltas)
 
 
-def cmd_sizeap(cfg, args):
-    """AP by object size from the validator's own matching (Table tab:size)."""
-    from meiscf.size_eval import run_size_ap
-    data_yaml = _resolve_data_yaml(cfg)
+def _parse_models(args, command):
+    """--models LABEL=WEIGHTS ... -> {label: weights}, with existence checks."""
     if not args.models:
-        sys.exit("sizeap requires --models LABEL=WEIGHTS [LABEL=WEIGHTS ...]")
+        sys.exit(f"{command} requires --models LABEL=WEIGHTS [LABEL=WEIGHTS ...]")
     models = {}
     for item in args.models:
         if '=' not in item:
@@ -265,8 +263,75 @@ def cmd_sizeap(cfg, args):
         if not Path(weights).exists():
             sys.exit(f"weights not found for '{label}': {weights}")
         models[label] = weights
+    return models
+
+
+def _int_list(values, default, flag):
+    """Numbers for a list flag, written either "1280 1536" or "1280,1536".
+
+    A flag that lost its dashes in a copied command line arrives here as a word,
+    where int() rejects it by name instead of it being taken for a value.
+    """
+    if not values:
+        return tuple(default)
+    out = []
+    for value in values:
+        for part in str(value).replace(',', ' ').split():
+            try:
+                out.append(int(part))
+            except ValueError:
+                sys.exit(f"{flag} takes numbers, got '{part}' -- if that is a flag, "
+                         f"it is missing its leading dashes")
+    return tuple(out)
+
+
+def cmd_fps(cfg, args):
+    """Inference speed at several input sizes on an idle GPU (Table tab:complexity)."""
+    from meiscf.evaluate import benchmark_fps_table
+    out = Path(args.out or (Path(_p(cfg, 'runs_dir')) / 'fps' / 'fps_benchmark.json'))
+    benchmark_fps_table(_parse_models(args, 'fps'),
+                        imgszs=_int_list(args.imgszs, [1280, 1536], '--imgszs'),
+                        batches=_int_list(args.batches, [1], '--batches'),
+                        device=cfg['train'].get('device'), out_json=out)
+
+
+def cmd_uavdt_prepare(cfg, args):
+    """Convert the UAVDT detection split to YOLO format with VisDrone class ids."""
+    from meiscf.uavdt import convert_uavdt
+    if not args.uavdt_root:
+        sys.exit("uavdt-prepare requires --uavdt-root <folder containing "
+                 "UAV-benchmark-M/ and UAV-benchmark-MOTD_v1.0/>")
+    convert_uavdt(args.uavdt_root, out_root=args.uavdt_yolo, split=args.split,
+                  frame_stride=args.frame_stride, link_images=not args.copy_images)
+
+
+def cmd_uavdt(cfg, args):
+    """Zero-shot evaluation of VisDrone-trained checkpoints on UAVDT."""
+    from meiscf.uavdt import evaluate_uavdt
+    root = Path(args.uavdt_yolo)
+    data_yaml = root / 'UAVDT.yaml'
+    if not data_yaml.exists():
+        sys.exit(f"{data_yaml} not found -- run 'python run.py uavdt-prepare "
+                 f"--uavdt-root <raw UAVDT>' first.")
+    ignore_json = root / f'ignore_regions_{args.split}.json'
+    out = Path(args.out or (Path(_p(cfg, 'runs_dir')) / 'uavdt'))
+    evaluate_uavdt(_parse_models(args, 'uavdt'), data_yaml,
+                   ignore_json if ignore_json.exists() else None, out,
+                   imgszs=_int_list(args.imgszs, [1280], '--imgszs'),
+                   max_det=cfg['eval'].get('max_det', 600),
+                   device=cfg['train'].get('device'),
+                   batch=cfg['eval'].get('batch', 4),
+                   merge_van=not args.no_merge_van,
+                   capture_stats=args.capture_stats)
+
+
+def cmd_sizeap(cfg, args):
+    """AP by object size from the validator's own matching (Table tab:size)."""
+    from meiscf.size_eval import run_size_ap
+    data_yaml = _resolve_data_yaml(cfg)
+    models = _parse_models(args, 'sizeap')
     out = Path(args.out or (Path(_p(cfg, 'runs_dir')) / 'size_ap'))
-    run_size_ap(models, data_yaml, out, imgszs=tuple(args.imgszs or [1280]),
+    run_size_ap(models, data_yaml, out, imgszs=_int_list(args.imgszs, [1280], '--imgszs'),
                 max_det=cfg['eval'].get('max_det', 600),
                 device=cfg['train'].get('device'))
 
@@ -335,7 +400,8 @@ def build_parser():
     p.add_argument('command',
                    choices=['smoke', 'prepare', 'train', 'ablation', 'evaluate',
                             'heatmaps', 'visualize', 'multiseed',
-                            'significance', 'sizeap', 'all'])
+                            'significance', 'sizeap', 'uavdt-prepare', 'uavdt',
+                            'fps', 'all'])
     p.add_argument('--config', default='config.yaml')
     p.add_argument('--variant', default=None, help="override train.variant")
     p.add_argument('--weights', default=None, help="model checkpoint (evaluate/heatmaps)")
@@ -360,8 +426,28 @@ def build_parser():
                    help="significance: per-seed paired deltas in pp for the seed-level test")
     p.add_argument('--models', nargs='*', default=None,
                    help="sizeap: LABEL=WEIGHTS pairs to evaluate")
-    p.add_argument('--imgszs', nargs='*', type=int, default=None,
-                   help="sizeap: input sizes (default: 1280)")
+    p.add_argument('--imgszs', nargs='*', default=None,
+                   help="sizeap/uavdt: input sizes (default: 1280); fps: default 1280 1536. "
+                        "Space- or comma-separated")
+    p.add_argument('--batches', nargs='*', default=None,
+                   help="fps: batch sizes to time (default: 1). One image at a time can "
+                        "leave a fast GPU idle between kernels; add e.g. 4,8 to compare "
+                        "models where the GPU, not the host, is the limit")
+    p.add_argument('--uavdt-root', default=None,
+                   help="uavdt-prepare: raw UAVDT folder (UAV-benchmark-M + "
+                        "UAV-benchmark-MOTD_v1.0)")
+    p.add_argument('--uavdt-yolo', default='UAVDT_YOLO',
+                   help="converted UAVDT dataset root (default: UAVDT_YOLO)")
+    p.add_argument('--split', default='test',
+                   help="uavdt: dataset split to convert/evaluate (default: test)")
+    p.add_argument('--frame-stride', type=int, default=5,
+                   help="uavdt-prepare: keep every n-th video frame (default: 5)")
+    p.add_argument('--capture-stats', action='store_true',
+                   help="uavdt: also save per-image statistics (batch 1) for "
+                        "sequence-level confidence intervals")
+    p.add_argument('--no-merge-van', action='store_true',
+                   help="uavdt: keep VisDrone 'van' detections separate instead of "
+                        "merging them into 'car'")
     p.add_argument('--variants', nargs='*', default=None,
                    help="multiseed: variants to run (default: meis_p2 baseline_p2)")
     p.add_argument('--seeds', nargs='*', default=None,
@@ -403,7 +489,8 @@ def main():
         'ablation': cmd_ablation, 'evaluate': cmd_evaluate,
         'heatmaps': cmd_heatmaps, 'visualize': cmd_visualize,
         'multiseed': cmd_multiseed, 'significance': cmd_significance,
-        'sizeap': cmd_sizeap, 'all': cmd_all,
+        'sizeap': cmd_sizeap, 'uavdt-prepare': cmd_uavdt_prepare,
+        'uavdt': cmd_uavdt, 'fps': cmd_fps, 'all': cmd_all,
     }[args.command](cfg, args)
 
 

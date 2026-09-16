@@ -1,0 +1,15 @@
+path: /home/m019/Desktop/MEISCF/UAVDT_YOLO
+train: images/all
+val: images/all
+nc: 10
+names:
+- pedestrian
+- people
+- bicycle
+- car
+- van
+- truck
+- tricycle
+- awning-tricycle
+- bus
+- motor

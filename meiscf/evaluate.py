@@ -123,6 +123,177 @@ def benchmark_fps(model_path, imgsz=1024, warmup=20, iters=100, device=None,
     return result
 
 
+def _gpu_state():
+    """What the GPUs are doing right now, so a reported speed can be trusted."""
+    import subprocess
+    state = {}
+    queries = {
+        'gpus': ['--query-gpu=index,name,utilization.gpu,memory.used,memory.total,'
+                 'clocks.current.sm,temperature.gpu', '--format=csv,noheader,nounits'],
+        'compute_apps': ['--query-compute-apps=gpu_uuid,pid,used_memory', '--format=csv,noheader'],
+    }
+    for key, args in queries.items():
+        try:
+            out = subprocess.run(['nvidia-smi'] + args, capture_output=True, text=True, timeout=30)
+            state[key] = [ln.strip() for ln in out.stdout.strip().splitlines() if ln.strip()]
+        except Exception as exc:                      # nvidia-smi missing or unreadable
+            state[key] = f"unavailable: {exc}"
+    state['visible_devices'] = __import__('os').environ.get('CUDA_VISIBLE_DEVICES', 'all')
+    return state
+
+
+def benchmark_fps_table(models, imgszs=(1280, 1536), batches=(1,), warmup_s=3.0,
+                        repeat_s=1.5, repeats=5, half=True, device=None, fuse=True,
+                        out_json=None):
+    """Inference speed for several models, input sizes and batch sizes.
+
+    No pre- or post-processing, convolution and batch-normalization layers fused.
+    Each configuration is warmed up for ``warmup_s`` seconds first: a GPU that has
+    been idle starts at a low clock and the first measurements come out too slow,
+    which in testing made a larger input look faster than a smaller one. The timed
+    loop then runs ``repeats`` times and the median is reported, with the spread
+    kept so drift stays visible. The state of every GPU is recorded before and
+    after, because a benchmark that shared the card with a training job would be
+    meaningless.
+
+    One image per batch is what a latency-sensitive deployment sees, but on a fast
+    card a small model can finish a layer sooner than the host can submit the next
+    one, so the loop measures the host instead of the model: the giveaway is a
+    latency that does not grow with the input size. Pass several ``batches`` to
+    check for this -- with enough images in flight the GPU becomes the limit again,
+    and the throughput comparison between models is then a comparison of the models.
+    """
+    if device in (None, '', 'auto'):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    elif isinstance(device, int) or str(device).isdigit():
+        device = f'cuda:{device}'                     # config allows "0" / 0
+    device = str(device)
+    dtype = torch.float16 if (half and device != 'cpu') else torch.float32
+    before = _gpu_state()
+    busy = [a for a in (before.get('compute_apps') or []) if isinstance(a, str)]
+    if busy:
+        logger.warning(f"Other processes are using a GPU right now: {busy}. "
+                       "Run this on an idle card or the numbers will be wrong.")
+    if device != 'cpu':
+        torch.backends.cudnn.benchmark = True
+
+    report, rows = {'gpu_state_before': before, 'settings': {
+        'batch': 1, 'half': bool(half), 'fused': bool(fuse), 'warmup_seconds': warmup_s,
+        'seconds_per_repeat': repeat_s, 'repeats': repeats,
+        'torch': torch.__version__, 'device': device,
+        'device_name': torch.cuda.get_device_name(device) if device != 'cpu' else 'cpu'}}, []
+
+    sync = (lambda: torch.cuda.synchronize()) if device != 'cpu' else (lambda: None)
+    key = lambda label, imgsz, batch: f'{label}_{imgsz}_b{batch}'
+    report['settings']['batches'] = list(batches)
+
+    for label, weights in models.items():
+        model = _load(weights)
+        if fuse:
+            model.fuse()
+        net = model.model.to(device).eval()
+        if dtype == torch.float16:
+            net = net.half()
+        for batch in batches:
+            for imgsz in imgszs:
+                rec = {'label': label, 'weights': str(weights), 'imgsz': imgsz,
+                       'batch': batch}
+                try:
+                    x = torch.zeros(batch, 3, imgsz, imgsz, device=device, dtype=dtype)
+                    per_repeat = []
+                    with torch.no_grad():
+                        deadline, n_warm = time.perf_counter() + warmup_s, 0
+                        while time.perf_counter() < deadline or n_warm < 20:
+                            net(x)
+                            n_warm += 1
+                            if n_warm % 10 == 0:
+                                sync()
+                        sync()
+                        t0 = time.perf_counter()       # latency estimate sets the loop length
+                        for _ in range(10):
+                            net(x)
+                        sync()
+                        latency = (time.perf_counter() - t0) / 10
+                        iters = max(20, int(round(repeat_s / max(latency, 1e-6))))
+                        for _ in range(repeats):
+                            t0 = time.perf_counter()
+                            for _ in range(iters):
+                                net(x)
+                            sync()
+                            per_repeat.append(batch * iters / (time.perf_counter() - t0))
+                    del x
+                except (torch.cuda.OutOfMemoryError, RuntimeError) as exc:
+                    if 'out of memory' not in str(exc).lower():
+                        raise
+                    rec['out_of_memory'] = str(exc).splitlines()[0]
+                    report[key(label, imgsz, batch)] = rec
+                    logger.warning(f"{label} @ {imgsz}px batch {batch}: out of memory, skipped")
+                    torch.cuda.empty_cache()
+                    continue
+                f = np.array(per_repeat)
+                rec.update({
+                    'fps_median': float(np.median(f)), 'fps_mean': float(f.mean()),
+                    'fps_std': float(f.std(ddof=1)) if len(f) > 1 else 0.0,
+                    'fps_min': float(f.min()), 'fps_max': float(f.max()),
+                    'latency_ms_per_batch': float(1000 * batch / np.median(f)),
+                    'ms_per_image': float(1000 / np.median(f)),
+                    'warmup_iters': n_warm, 'iters_per_repeat': iters,
+                    'fps_per_repeat': [float(v) for v in f]})
+                report[key(label, imgsz, batch)] = rec
+                rows.append(rec)
+                logger.info(f"{label} @ {imgsz}px batch {batch}: {rec['fps_median']:.1f} img/s "
+                            f"median (range {rec['fps_min']:.1f}-{rec['fps_max']:.1f}, "
+                            f"{rec['latency_ms_per_batch']:.1f} ms/batch, "
+                            f"{iters} iters x {repeats})")
+            # A larger input has more pixels to convolve, so it must take longer. When
+            # it does not, the loop is not measuring the model: it is measuring how
+            # fast this host can submit kernels, either because something else is
+            # using the machine or because one image at a time cannot keep the card
+            # busy. Only the second cause is fixed by adding images to the batch.
+            sizes = sorted(imgszs)
+            for small, large in zip(sizes, sizes[1:]):
+                lo, hi = report[key(label, small, batch)], report[key(label, large, batch)]
+                if 'fps_median' not in lo or 'fps_median' not in hi:
+                    continue
+                pixels = (large / small) ** 2         # convolution cost grows with pixels
+                slowdown = lo['fps_median'] / hi['fps_median']
+                # How much of the implied extra work actually showed up in the clock.
+                efficiency = (slowdown - 1) / (pixels - 1)
+                hi[f'fps_ratio_to_{small}px'] = float(hi['fps_median'] / lo['fps_median'])
+                hi[f'compute_scaling_vs_{small}px'] = float(efficiency)
+                hi['host_bound'] = bool(efficiency < 0.5)
+                if hi['host_bound']:
+                    logger.warning(
+                        f"{label} batch {batch}: {large}px has {pixels:.2f}x the pixels of "
+                        f"{small}px but took only {slowdown:.2f}x as long "
+                        f"({hi['fps_median']:.1f} vs {lo['fps_median']:.1f} img/s), "
+                        f"{100 * efficiency:.0f}% of the implied cost. The loop is bound by the "
+                        "host, not the model. Check that the machine is idle, then measure a "
+                        "larger batch.")
+        del model, net
+        if device != 'cpu':
+            torch.cuda.empty_cache()
+
+    report['gpu_state_after'] = _gpu_state()
+    lines = ["", "Throughput in images/s: median of the repeats, observed range in brackets",
+             f"{'model':22s}{'batch':>6s}" + "".join(f"{'img/s @' + str(z):>26s}" for z in imgszs)]
+    for label in models:
+        for batch in batches:
+            cells = ""
+            for z in imgszs:
+                r = report[key(label, z, batch)]
+                cells += (f"{r['fps_median']:12.1f}  [{r['fps_min']:5.1f}, {r['fps_max']:5.1f}]"
+                          if 'fps_median' in r else f"{'out of memory':>26s}")
+            lines.append(f"{label:22s}{batch:6d}{cells}")
+    text = "\n".join(lines)
+    print(text)
+    if out_json:
+        Path(out_json).parent.mkdir(parents=True, exist_ok=True)
+        Path(out_json).write_text(json.dumps(report, indent=2))
+        Path(out_json).with_suffix('.txt').write_text(text)
+    return report
+
+
 def model_complexity(model_path, imgsz=640, out_json=None):
     """Report parameter count and GFLOPs (uses Ultralytics' built-in profiler)."""
     model = _load(model_path)

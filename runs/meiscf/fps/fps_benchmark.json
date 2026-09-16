@@ -1,0 +1,160 @@
+{
+  "gpu_state_before": {
+    "gpus": [
+      "0, NVIDIA GeForce RTX 4060 Laptop GPU, 1, 741, 8188, 1890, 49"
+    ],
+    "compute_apps": [
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 12456, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 13388, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 14900, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 14924, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 16988, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 19864, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 21040, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 22200, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 26324, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 8816, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 24872, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 23588, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 17332, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 29224, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 23696, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 34700, [N/A]"
+    ],
+    "visible_devices": "all"
+  },
+  "settings": {
+    "batch": 1,
+    "half": true,
+    "fused": true,
+    "warmup_seconds": 3.0,
+    "seconds_per_repeat": 1.5,
+    "repeats": 5,
+    "torch": "2.6.0+cu118",
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "batches": [
+      1,
+      2
+    ]
+  },
+  "n_320_b1": {
+    "label": "n",
+    "weights": "yolo11n.pt",
+    "imgsz": 320,
+    "batch": 1,
+    "fps_median": 116.6713659296503,
+    "fps_mean": 94.95211179421509,
+    "fps_std": 33.018790512969595,
+    "fps_min": 54.928864259977445,
+    "fps_max": 121.03129251512433,
+    "latency_ms_per_batch": 8.571083333360244,
+    "ms_per_image": 8.571083333360244,
+    "warmup_iters": 112,
+    "iters_per_repeat": 96,
+    "fps_per_repeat": [
+      62.984050470120195,
+      54.928864259977445,
+      119.14498579620312,
+      121.03129251512433,
+      116.6713659296503
+    ]
+  },
+  "n_480_b1": {
+    "label": "n",
+    "weights": "yolo11n.pt",
+    "imgsz": 480,
+    "batch": 1,
+    "fps_median": 57.5802318839673,
+    "fps_mean": 58.63389384202003,
+    "fps_std": 6.627293854771105,
+    "fps_min": 51.82719143212776,
+    "fps_max": 66.57411958282887,
+    "latency_ms_per_batch": 17.367071428526863,
+    "ms_per_image": 17.367071428526863,
+    "warmup_iters": 209,
+    "iters_per_repeat": 98,
+    "fps_per_repeat": [
+      66.57411958282887,
+      64.30326785917617,
+      57.5802318839673,
+      52.884658452000046,
+      51.82719143212776
+    ],
+    "fps_ratio_to_320px": 0.49352496583169025,
+    "compute_scaling_vs_320px": 0.8209919566112258,
+    "host_bound": false
+  },
+  "n_320_b2": {
+    "label": "n",
+    "weights": "yolo11n.pt",
+    "imgsz": 320,
+    "batch": 2,
+    "fps_median": 209.8532960404113,
+    "fps_mean": 201.25748403534826,
+    "fps_std": 43.45895894146126,
+    "fps_min": 126.04839691945408,
+    "fps_max": 231.78012868384502,
+    "latency_ms_per_batch": 9.530467415745814,
+    "ms_per_image": 4.765233707872907,
+    "warmup_iters": 135,
+    "iters_per_repeat": 89,
+    "fps_per_repeat": [
+      126.04839691945408,
+      208.31346260893892,
+      209.8532960404113,
+      230.29213592409215,
+      231.78012868384502
+    ]
+  },
+  "n_480_b2": {
+    "label": "n",
+    "weights": "yolo11n.pt",
+    "imgsz": 480,
+    "batch": 2,
+    "fps_median": 114.69755228042524,
+    "fps_mean": 129.23752138140438,
+    "fps_std": 44.03973396638177,
+    "fps_min": 101.40976173923615,
+    "fps_max": 206.45870439511953,
+    "latency_ms_per_batch": 17.43716374269417,
+    "ms_per_image": 8.718581871347086,
+    "warmup_iters": 297,
+    "iters_per_repeat": 171,
+    "fps_per_repeat": [
+      206.45870439511953,
+      114.69755228042524,
+      101.40976173923615,
+      101.76825921192632,
+      121.85332928031458
+    ],
+    "fps_ratio_to_320px": 0.5465606423371974,
+    "compute_scaling_vs_320px": 0.6636985140002902,
+    "host_bound": false
+  },
+  "gpu_state_after": {
+    "gpus": [
+      "0, NVIDIA GeForce RTX 4060 Laptop GPU, 23, 901, 8188, 1890, 51"
+    ],
+    "compute_apps": [
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 12456, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 13388, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 14900, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 14924, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 16988, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 19864, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 21040, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 22200, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 26324, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 8816, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 24872, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 23588, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 17332, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 29224, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 23696, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 34700, [N/A]",
+      "GPU-cb2f6169-0c9f-3dd1-56e6-6afc859d8778, 31176, [N/A]"
+    ],
+    "visible_devices": "all"
+  }
+}

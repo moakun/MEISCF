@@ -1,0 +1,28 @@
+sequence   images     car   truck     bus
+M0101          82    1040      38      14
+M0201         216    1167     111      28
+M0202          59     774       0       0
+M0203         202    1084      43       0
+M0204          70     646      22       0
+M0205         130    1089      10       0
+M0206         113    1029       0      29
+M0207         177      98       0     115
+M0208          53     156       0       0
+M0209         316    3655       0       0
+M0210         117     943     359       0
+total        1535   11681     583     186
+sequences containing each class: {'car': 11, 'truck': 6, 'bus': 4}
+
+model            car    truck      bus     mean
+p3_prog        72.20    15.84    54.35    47.46
+p2_prog        74.02    24.50    54.20    50.90
+p3_sp          74.44    23.06    48.68    48.73
+p2_sp          76.49    20.77    45.22    47.49
+meis_prog      73.21    13.06    43.33    43.20
+
+contrast (AP@50 points, 95% CI from resampling the 11 sequences)
+  schedule | P3-P5           car +2.24 [ -0.2, +5.5]  truck +7.23 [ +0.6,+29.4]  bus -5.67 [-18.7,+17.7]  mean +1.26 [ -3.8,+12.5]
+  schedule | P2              car +2.47 [ -0.1, +5.7]  truck -3.73 [-15.9, +2.0]  bus -8.98 [-14.8,+18.9]  mean -3.41 [ -8.0, +5.7]
+  stride | progressive       car +1.82 [ -0.5, +4.2]  truck +8.66 [ -0.0,+27.3]  bus -0.16 [ -7.9, +3.1]  mean +3.44 [ -0.4, +8.9]
+  stride | single phase      car +2.05 [ -0.1, +4.3]  truck -2.30 [-16.2, +1.0]  bus -3.46 [ -6.0, +5.6]  mean -1.23 [ -5.7, +2.0]
+  MEIS + FRM | progressive   car -0.81 [ -2.9, +1.7]  truck -11.43 [-28.5, +1.7]  bus -10.87 [-26.6,+12.7]  mean -7.70 [-17.6, +2.8]

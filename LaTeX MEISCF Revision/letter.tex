@@ -1,84 +1,729 @@
 \documentclass[11pt, a4paper]{article}
 
 \usepackage[
-    top=2.5cm, bottom=2.5cm,
-    left=2.8cm, right=2.8cm
+    top=2.3cm, bottom=2.3cm,
+    left=2.5cm, right=2.5cm
 ]{geometry}
 \usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{enumitem}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, urlcolor=blue, linkcolor=black}
 
+% Pending items are marked with \tbd[...] and print in red. Search for "\tbd"
+% before submitting.
+\newcommand{\tbd}[1][TBD]{\textcolor{red}{\textbf{[#1]}}}
+
+% A reviewer comment, followed by our reply.
+\newcommand{\point}[1]{\medskip\noindent\textit{#1}\par}
+\newcommand{\reply}{\textbf{Response.}\ }
+
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{8pt}
-\pagestyle{empty}
+\setlength{\parskip}{7pt}
 
 \begin{document}
 
-% ── Sender (top right) ──────────────────────────────────────────────────────
 \begin{flushright}
+    Professor Xinzhong Zhu \quad (corresponding author) \\
     Moatassim Barakat \\
     College of Computer Science and Technology \\
     Zhejiang Normal University, Jinhua 321004, China \\
-    \href{mailto:moatassimbarakat@gmail.com}{moatassimbarakat@gmail.com}
+    \href{mailto:zxz@zjnu.edu.cn}{zxz@zjnu.edu.cn}
     \quad
-    \href{mailto:zxz@zjnu.edu.cn}{zxz@zjnu.edu.cn} \\[4pt]
+    \href{mailto:moatassimbarakat@gmail.com}{moatassimbarakat@gmail.com} \\[4pt]
     \today
 \end{flushright}
 
 \bigskip
 
-% ── Recipient ───────────────────────────────────────────────────────────────
-The Editor-in-Chief \\
-\textit{IEEE Transactions on Geoscience and Remote Sensing}
+Professor Tamas Sziranyi \\
+Area Editor, \textit{Digital Signal Processing}
 
 \bigskip
 
-Dear Editor-in-Chief,
-
-We respectfully submit our manuscript entitled \textbf{``MEISCF: Multi-scale
-Edge Information Selection with Cross-scale Fusion for Small Object Detection
-in UAV Imagery''} for consideration for publication in \textit{IEEE
-Transactions on Geoscience and Remote Sensing}.
-
-Small object detection in UAV aerial imagery poses three fundamental
-challenges: objects manifest primarily as edge-dominated patterns at
-$16{\times}16$ pixel scales, scale variation spans two orders of magnitude
-within single frames, and standard multi-scale fusion mechanisms fail to
-adaptively weight scale-specific information. Existing methods, including the
-current state-of-the-art CF-YOLO (44.9\% mAP@50), address these challenges
-only partially.
-
-This paper proposes MEISCF, which integrates three complementary modules into
-the YOLOv11 architecture: (1)~\textbf{Multi-scale Edge Information Selection
-(MEIS)}, which explicitly captures boundary features at multiple receptive
-fields ($16{\times}16$, $32{\times}32$, $64{\times}64$) with adaptive gating;
-(2)~\textbf{Cross-scale Sandwich Fusion}, which performs learnable three-level
-simultaneous feature integration rather than sequential two-level fusion; and
-(3)~\textbf{Feature Recalibration Module (FRM)}, which applies dual-path
-channel and spatial attention after fusion to refine already-integrated
-multi-scale representations. Combined with a four-phase progressive training
-strategy (640\,$\to$\,800\,$\to$\,1024\,$\to$\,1280\,px), MEISCF achieves
-\textbf{55.1\% mAP@50} on VisDrone---a +17.6\% improvement over the YOLOv11
-baseline and +10.2\% over CF-YOLO---at 105\,FPS on consumer-grade hardware.
-Cross-dataset evaluation on UAVDT (+1.8\% AP) further validates
-generalization beyond the training benchmark.
-
-We believe this work makes a meaningful contribution to the geoscience and
-remote sensing community and is well suited to the scope of \textit{IEEE
-TGRS}. This manuscript has not been published previously and is not under
-consideration elsewhere. All authors have approved the submitted version.
-AI-assisted tools were used for manuscript editing and figure preparation, in
-accordance with IEEE authorship guidelines.
-
-We appreciate your time and look forward to the reviewers' comments.
+Manuscript DSP-D-26-02086 \\
+Original title: ``MEISCF: Multi-scale Edge Information Selection with
+Cross-scale Fusion for Small Object Detection in UAV Imagery''
 
 \bigskip
 
-Sincerely,
+\begin{center}
+\large\textbf{Response to Reviewers}
+\end{center}
+
+\bigskip
+
+Dear Professor Sziranyi,
+
+Thank you for the opportunity to revise this manuscript, and please pass our
+thanks to the six reviewers. Their central request was the same one, put in
+different ways: isolate the contribution of each component under matched
+conditions, and show that the reported gains are larger than the noise.
+
+We ran those controls. They did not confirm the paper. Under a matched epoch
+budget, almost all of the accuracy we had attributed to our modules came from the
+training schedule, and the direction of that effect was the opposite of what we
+had claimed: single-resolution training at the deployment size beat our
+four-phase progressive schedule by 3.3 to 4.2 points mAP@50. A second seed
+reversed the sign of the MEIS and FRM difference. A factorial ablation showed
+that neither multi-scale dilation nor adaptive gating, the two ingredients that
+define MEIS, did better than a plain convolution with the same capacity. Resolved
+by object size, the modules improved no size range below 32 pixels.
+
+We could not honestly repair the original manuscript, so we rewrote it as the
+controlled study the reviewers asked for. The revised paper reports what the
+experiments show, including the results that refute our earlier claims. Its new
+title is:
+
+\begin{quote}
+``What Drives Small Object Detection Accuracy in UAV Imagery? A Controlled Study
+of Training Resolution, Detection Stride, and Feature Modules''
+\end{quote}
+
+We recognise that this is a larger change than a revision normally involves, and
+that the paper now argues against the method it was named after. We think it is
+the more useful paper, and the one the reviewers' comments point to. If the
+Editor judges that it is better handled as a new submission, we will follow that
+advice.
+
+\section*{Summary of the main changes}
+
+\begin{itemize}[leftmargin=1.3em, itemsep=2pt]
+\item \textbf{Matched comparisons.} Every comparison now varies one factor at a
+time at a matched epoch budget, with training and evaluation at the same input
+size. The schedule is crossed with the detection head in a $2\times2$ design
+(Table~5).
+\item \textbf{Statistical testing.} All differences are tested with a paired
+bootstrap and a paired permutation test over the 548 validation images, with
+Bonferroni correction across the ten classes. Two seeds are reported for the
+module comparison and for both schedules of the four-level detector
+(Sections~4.5, 5.4).
+\item \textbf{Component isolation.} A factorial ablation separates multi-scale
+dilation from adaptive gating and compares both against a plain convolution of
+equal capacity (Section~5.3.1, Table~7).
+\item \textbf{Accuracy by object size.} Results are resolved into COCO size
+ranges and into bands of network-input pixels tied to the detection strides
+(Section~5.5, Table~8, Fig.~8).
+\item \textbf{A predictive account.} Section~3 states a sampling argument and
+derives three predictions before the experiments, so the architectural results
+can be judged against a stated expectation rather than explained afterwards.
+\item \textbf{Cross-dataset evaluation.} UAVDT is now evaluated zero-shot with
+ignore regions honoured and sequence-level resampling, and the classes it cannot
+test are named (Section~5.6, Table~9).
+\item \textbf{Cost.} Throughput is measured where the GPU, not the host, is the
+limit, and reported next to the operation counts (Section~4.2, Table~2).
+\item \textbf{Claims removed.} The comparison against CF-YOLO under unmatched
+training, the ``+17.6\%'' and ``+10.2\%'' headline numbers, the claim of novelty
+for three-level fusion, and the unsupported activation-magnitude statistic have
+all been removed.
+\end{itemize}
+
+\textit{A note on cross-references.} The manuscript was rewritten rather than
+edited, so line numbers of the original no longer locate anything. We therefore
+point to sections, tables and figures of the revised manuscript.
+
+% ===========================================================================
+\section*{Reviewer \#1}
+
+\point{Introduction section could more clearly distinguish the genuine
+methodological contribution from the integration of previously established
+techniques. Several components \dots are based on well-known concepts. Please
+explicitly identify which aspects constitute the primary scientific
+contribution.}
+
+\reply We agree, and the controls we ran to answer this question showed that the
+components did not carry the result. The contribution is no longer a module. It
+is the controlled comparison itself: which of three design decisions --- training
+resolution schedule, detection stride, and feature modules --- actually moves
+small-object accuracy, measured one factor at a time with paired tests and two
+seeds, and resolved by object size. The Introduction now states this and lists
+three contributions: the matched-budget schedule-by-stride comparison, the
+controlled evaluation of the modules including the factorial ablation, and the
+sampling account with its size-resolved test (Section~1). We also state plainly
+that the modules we had proposed do not survive the controls.
+
+\point{The Related Work section \dots is largely descriptive. I recommend more
+critical discussion of previous approaches and a clearer explanation of how the
+proposed framework differs from recent lightweight YOLO variants,
+Transformer-based detectors, and other state-of-the-art methods.}
+
+\reply Related Work has been restructured around the four questions the study
+tests: feature modules for small aerial objects, resolution and sampling,
+resolution schedules during training, and variance and significance in detector
+evaluation (Sections~2.1--2.4). Each subsection now asks what evidence the cited
+work provides rather than what it proposes: how many seeds, whether the
+comparison was matched, and whether the reported gain exceeds the run-to-run
+spread. Section~2.4 is new and reviews what is known about seed variance in
+detection benchmarks, which is the standard against which we judge our own
+effects.
+
+\point{The largest improvement is achieved by the progressive multi-resolution
+training strategy, whereas the architectural modifications contribute only an
+additional improvement \dots a more convincing evaluation should include
+comparisons with competing approaches, particularly CF-YOLO, trained using the
+same progressive training schedule.}
+
+\reply Your reading was correct, and the controlled experiment went further than
+we expected: the schedule dominates, and it dominates in the opposite direction.
+Single-phase training at 1280\,px beat the four-phase progressive schedule by
+3.94 points mAP@50 with seed 0 and 4.16 with seed 42, with and without the
+stride-4 level (Table~4, Table~5; paired bootstrap 95\% CI $[4.11,\,5.49]$ at
+1536\,px, $p<0.002$, permutation $p=0.001$). At matched training compute the
+single-phase run was 3.87 points ahead (Section~5.1, Fig.~4).
+
+We did not retrain CF-YOLO under our schedule. The comparison is no longer
+load-bearing, because the revised paper makes no claim of superiority over
+CF-YOLO or any other published method; that claim and its headline number have
+been removed. Section~5.7 and Table~10 now present published results with their
+protocols side by side --- split, input size, initialization --- precisely to show
+that they are not a ranking. Retraining a third-party detector under two
+schedules would be a worthwhile experiment, but its outcome would not change any
+conclusion we now draw, and we would rather not publish claims about another
+group's method from a reimplementation we cannot validate.
+
+\point{Adaptive gating mechanism within the MEIS module and the selected dilation
+rates are evaluated only as part of the complete framework.}
+
+\reply This is now a dedicated factorial experiment (Section~5.3.1, Table~7,
+Fig.~7). We crossed the dilation rates, $(1,2,4)$ against $(1,1,1)$, with the gate
+type, input-adaptive against a static learnable channel weight, holding the
+parameter count fixed. The corner with $(1,1,1)$ dilations and a static gate is a
+plain residual block of depthwise-separable convolutions with the same capacity as
+MEIS. Neither ingredient beat that plain block on two seeds. Whatever MEIS
+contributes, it is not multi-scale dilation and not adaptive gating.
+
+\point{The methodological novelty of FRM also appears relatively limited \dots
+its structure is essentially equivalent to the well-known CBAM module, while the
+primary difference lies only in its placement \dots I could be taking into account
+deeper theoretical analysis explaining why this particular combination of modules
+should produce more discriminative feature representations.}
+
+\reply We accept the criticism and have stopped claiming otherwise. FRM is
+described as CBAM applied after fusion, with a citation to CBAM and no claim of
+structural novelty (Section~4.2). It is no longer counted as a separate
+contribution with its own percentage.
+
+On the request for a theoretical account: rather than argue after the fact why
+the combination should work, Section~3 now states a sampling argument
+\emph{before} the experiments and derives three testable predictions from it, with
+the object-size distribution of VisDrone measured in network-input pixels
+(Table~1, Figs.~1--2). The account predicts the stride results correctly and fails
+on the schedule result, and we say so (Section~6.1). This seemed to us more useful
+than a post-hoc justification of a combination that the measurements do not
+support.
+
+\point{Another aspect that deserves further attention is the interpretability
+\dots I recommend present visualizations of feature maps, activation maps, or
+attention maps demonstrating that the network indeed focuses on edge-related
+structures.}
+
+\reply We have not added these, and we would like to explain why rather than
+simply decline. Such a visualization would be evidence for a claim the paper no
+longer makes. It can show that a branch responds to boundaries, but not that this
+response contributes to detection accuracy, and our measurements say it does not:
+MEIS improves no size range below 32 pixels on either seed, and a plain
+convolution of equal capacity does as well (Section~5.3, Table~8). Publishing
+attention maps beside that result would invite the reader to trust the picture
+over the measurement. We report the quantitative decomposition instead, by object
+size and by component.
+
+\point{The cross-dataset evaluation on the UAVDT dataset considers only the
+dominant car category and results in a relatively modest improvement. Please \dots
+evaluate the robustness \dots under challenging imaging conditions, such as motion
+blur, varying illumination, partial occlusion, and image noise.}
+
+\reply The UAVDT evaluation has been rebuilt: zero-shot at 1280\,px, official
+ignore regions honoured, vans merged into cars to match UAVDT's label set, and
+confidence intervals from resampling whole sequences rather than frames, since
+frames within a sequence are not independent (Section~5.6, Table~9). The car
+ordering reproduces VisDrone --- schedule $+2.24$ and $+2.47$ AP, stride $+1.82$,
+MEIS $-0.81$ --- but no sequence-level interval excludes zero, and we now report
+that rather than the point estimates alone. We also state why trucks and buses
+cannot carry a conclusion: each has 62\% of its boxes in a single sequence, so
+their AP moves by tens of points between resamples and the two classes rank the
+models in opposite orders.
+
+We did not run a controlled corruption study. Doing it properly means calibrated
+blur, noise and illumination levels applied to a fixed image set, which is a
+separate experiment of its own size; and since the modules show no benefit in
+clean conditions on either seed, a robustness study would most likely measure the
+robustness of the baseline. We list it as future work in Section~6.4 rather than
+report a partial version of it.
+
+\point{I recommend extending the experimental comparison to include more recent
+lightweight Transformer-based object detectors as well as the latest YOLO variants
+specifically designed for aerial imagery.}
+
+\reply We have not added new detector families, for a reason that is central to
+the paper: adding architectures without matched schedules, matched input sizes,
+matched epoch budgets and paired tests would reproduce exactly the problem the
+paper documents. Our experiments show that a schedule change alone moves mAP@50 by
+about 4 points, which is larger than the margin most such comparisons report, so a
+table of detectors trained under their own recipes cannot separate architecture
+from protocol. Section~5.7 therefore reports published numbers with their
+protocols attached and explicitly declines to rank them, and Section~6.4 lists the
+narrow architectural scope --- one detector family, one backbone scale --- as a
+limitation of this study.
+
+% ===========================================================================
+\section*{Reviewer \#2}
+
+\point{\dots the manuscript is clearly written, the technical contribution is
+well supported by the experimental results, and the proposed approach represents a
+valuable contribution to the literature.}
+
+\reply We thank the reviewer for the positive assessment, and we owe them a
+straightforward explanation of why the manuscript they recommended has changed so
+much. The controls requested by the other reviewers did not support the
+framework's effectiveness. The experimental design the reviewer found
+comprehensive has been kept and extended, but its conclusions have reversed: the
+gains we reported came from the training schedule rather than from the modules,
+and the schedule itself works in the opposite direction to the one we claimed. We
+hope the revised paper remains useful to the community for the measurement
+practice it documents, even though its findings are negative for the method.
+
+% ===========================================================================
+\section*{Reviewer \#3}
+
+\point{The motivation is not clear. There are several methods combined together,
+what is the novelty of this manuscript and what are their functions?}
+
+\reply The manuscript no longer combines methods. It tests three design decisions
+separately and reports which one matters. The motivation, stated at the start of
+Section~1, is that gains of one to three points are routinely attributed to new
+modules in this literature while the training protocol is left uncontrolled and
+run-to-run variance is not reported; our own earlier results were an instance of
+this. The novelty is the controlled decomposition and its outcome, not a module.
+
+\point{Figs.~2 and 3 are confusing.}
+
+\reply The figure set has been rebuilt. The revised manuscript has eight figures:
+the sampling geometry that motivates the study, showing the same object under
+three stride and input-size settings (Fig.~1), the class distribution of the
+training set (Fig.~2), the detector
+architecture with the stride-4 path marked (Fig.~3), accuracy against training
+compute (Fig.~4), per-class differences (Fig.~5), a forest plot of every headline
+contrast with its confidence interval (Fig.~6), the factorial ablation (Fig.~7),
+and accuracy by object size (Fig.~8). Each is drawn to make one comparison, and
+the caption states what it shows.
+
+\point{The expression should be more concise. The contributions should be
+shortened.}
+
+\reply The manuscript has been rewritten throughout. The contribution list is now
+three short items in Section~1 rather than an extended enumeration, and the
+abstract is a single paragraph of results.
+
+\point{Please check the parts seem like being written by AI, for example, the
+former part of the abstract.}
+
+\reply The abstract has been written from scratch and now opens with the question
+the study asks and the design used to answer it, with no promotional framing. The
+manuscript as a whole was rewritten in plain declarative prose. Our use of
+AI-assisted tools is declared through the submission system, in line with the
+journal's policy.
+
+\point{The references should be logically organized with enough analyses, and
+some outdated references should be deleted or replaced. Mohamed Meyer Kana Kone,
+et al. Applied Soft Computing, 2026, 203: 116069.}
+
+\reply Related Work is now organized by the four questions the study tests rather
+than by method family, and each entry is discussed in terms of the evidence it
+provides (Sections~2.1--2.4). The reference list was rebuilt for the new
+manuscript and superseded entries were removed. \tbd[Authors: check the suggested
+Applied Soft Computing paper and add it to Section~2.1 or~2.2 if it bears on
+these questions; do not cite it unverified.]
+
+\point{Can quantum computing be helpful to solve this problem? NR Zhou, et al.
+\dots Gong LH, et al. \dots}
+
+\reply It is an interesting question, but outside what this manuscript can speak
+to. The study is an empirical comparison of training schedules, detection strides
+and feature modules for a convolutional detector on classical hardware, and none
+of its measurements bear on quantum methods. We have not added these citations,
+since we could not connect them to any claim in the paper, and a citation we
+cannot justify in the text would not serve the reader.
+
+\point{It is hard to follow since the theoretical foundation is not clear.}
+
+\reply Section~3 is new and supplies it. It sets out how the detection stride
+determines the sampling density of an object of a given size, measures the
+VisDrone size distribution in network-input pixels at each training resolution
+(Table~1), and derives three predictions: which size ranges a stride-4 level
+should help, which it should hurt, and what a module acting after downsampling can
+and cannot recover. The experiments then test those predictions, and Section~6.1
+reports which held and which failed.
+
+\point{Why should we use YOLOv11 but not other new versions?}
+
+\reply Section~4.2 gives the reason: the study needs a detector whose neck and
+head can be modified in a controlled way and whose training pipeline is public and
+stable, so that the only difference between two runs is the factor under test.
+YOLOv11s provides this with COCO-pretrained weights at a scale that fits the
+repeated multi-seed training the design requires. The conclusions concern
+schedule, stride and module placement, which are not specific to the version;
+Section~6.4 states the single-family scope as a limitation.
+
+\point{More comparisons would be better to convince the audience. The results
+should be explained theoretically.}
+
+\reply The revised paper adds the comparisons that isolate causes rather than
+lengthen the ranking: the $2\times2$ schedule-by-stride design (Table~5), the
+factorial ablation of MEIS (Table~7), size-resolved accuracy for every contrast
+(Table~8), a second seed for four configurations, and a zero-shot cross-dataset
+evaluation (Table~9). Each result is set against the prediction of Section~3, and
+Section~6.1 separates what the sampling account explains --- the whole pattern of
+the stride results --- from what it does not --- the schedule effect, for which we
+give the competing explanations and say which experiment would decide between
+them.
+
+\point{What is the cost of the performance improvement?}
+
+\reply Cost is now reported for both kinds of change. For training, we report
+pixel-epochs, a hardware-independent measure of the pixels a schedule processes
+(Section~4.3, Table~4), and accuracy against compute (Fig.~4). For inference,
+Table~2 reports parameters, operation counts at three input sizes and measured
+throughput at 1280 and 1536\,px. The stride-4 level costs 74\% more operations
+and 89\% more time; MEIS with FRM costs 18\% more operations but 85\% more time,
+so its real cost is 1.6 times what its operation count implies, for no measurable
+accuracy benefit.
+
+\point{The advantages and disadvantages of this designed method were detailed, can
+it be realized with current technology?}
+
+\reply All models are ordinary convolutional detectors that train and run on a
+single consumer GPU; every number in the paper was produced on one RTX~3080, and
+Table~2 gives the measured throughput. The revised manuscript is explicit that the
+modules' disadvantages outweigh their advantages: they cut throughput nearly in
+half at 1280\,px and improve no size range below 32 pixels.
+
+% ===========================================================================
+\section*{Reviewer \#4}
+
+\point{1. The +1.6\% gain from the MEIS module is a combined result of three
+design dimensions \dots Is it the ``edge extraction'' itself that is effective? Or
+does the ``adaptive gating'' contribute the gain? Or is it simply that after
+resolution enhancement, any additional convolution can bring a +1.x\%
+improvement?}
+
+\reply The third possibility is the closest to what we measured. The factorial
+ablation (Section~5.3.1, Table~7) crosses dilation rates with gate type at a fixed
+parameter count, and its plain-convolution corner --- $(1,1,1)$ dilations, static
+gate --- performs as well as full MEIS on two seeds. Moreover the $+1.6\%$ itself
+does not survive a second seed: measured against Baseline-P2 under matched
+conditions, MEIS with FRM changed mAP@50 by $+0.58$ points with seed 0 and
+$-0.34$ with seed 42 at 1536\,px, with paired bootstrap intervals of
+$[-0.15,\,1.27]$ and $[-1.00,\,0.33]$ and permutation tests that agree
+(Section~5.3, Table~6, Fig.~6). Even on the favourable seed the interval excludes
+improvements larger than about 1.3 points. Split by object size, the two-seed mean
+change on COCO-small is $-0.80$ points, 95\% CI $[-1.50,\,-0.07]$ (Table~8).
+
+\point{2. The authors claim to ``simultaneously integrate P3/P4/P5,'' but in fact
+only the P4 level achieves three-layer fusion \dots Moreover, learnable scalar
+weights have already been widely used in CF-YOLO and EfficientDet.}
+
+\reply Both observations are correct and the claim has been withdrawn. The neck is
+now described accurately, with its normalized learnable weighting attributed to
+the fast normalized fusion of BiFPN (Section~4.2), and no novelty is claimed for
+it. It is not part of the main experiments; the runs that used it are reported in
+Appendix~A as earlier single-seed ablations, clearly labelled as such.
+
+\point{3. The authors acknowledge that CF-YOLO did not use progressive training
+and that the comparison is an ``upper bound.'' However, this comparison is
+repeatedly emphasized as a +10.2\% improvement in the Abstract, Introduction, and
+Conclusion, which can easily mislead readers.}
+
+\reply Agreed, and it has been removed from the abstract, the introduction, the
+conclusion and everywhere else. The revised manuscript makes no comparative claim
+against CF-YOLO. Section~5.7 explains why published VisDrone numbers are not
+comparable across papers --- split, input size, initialization and even the AP
+definition differ --- and Table~10 lists protocols alongside numbers so that the
+rows cannot be read as a ranking.
+
+\point{4. On UAVDT, evaluation is conducted only on the ``car'' class \dots this
+also reveals that MEISCF's cross-domain generalization capability for truly small
+objects has not been validated at all.}
+
+\reply Correct, and this is now stated in the abstract rather than left to the
+discussion: UAVDT contains only vehicle classes, so cross-domain generalization
+for small non-vehicle objects remains untested. The rebuilt evaluation
+(Section~5.6) reports what the benchmark can and cannot support: cars reproduce
+the VisDrone ordering but no sequence-level interval excludes zero; trucks appear
+in six of eleven sequences with 62\% of them in one, and buses in four sequences
+with 62\% in one, so neither class can carry a conclusion; and UAVDT's objects are
+larger, with 30.7\% of instances below 32 pixels against 68.6\% on the VisDrone
+validation set, so the two benchmarks do not probe the same size regime.
+
+\point{5. Table~1 and Table~3 appear to be redundant \dots However, the reported
+metrics for the same methods are inconsistent across the two tables. Why?}
+
+\reply The inconsistency was real and we apologize for it: those tables mixed runs
+from different configurations and input sizes. The revised manuscript uses one
+evaluation protocol for every number it reports --- letterbox to the stated size,
+confidence 0.001, NMS IoU 0.5, at most 600 detections per image (Section~4.4) ---
+and any number produced under a different configuration is confined to
+Appendix~A, which states the four ways that configuration differed. We also
+identified a second source of inconsistency that affects comparisons with the
+literature: Ultralytics releases differ in how the precision--recall curve is
+terminated, which changes mAP@50 by 0.5 to 0.7 points on identical detections.
+Section~4.4 states the definition we use.
+
+\point{6. Some experiments are conducted at 1024$\times$1024 resolution, while
+others are at 1280$\times$1280. What is the rationale behind this choice? Why is
+the resolution not kept consistent across all experiments?}
+
+\reply There was no good rationale; the resolutions reflected the order in which
+the experiments had been run. In the revised manuscript every model is trained at
+its stated size and evaluated at 1280 and 1536\,px, the same two sizes for all
+models. The 1024\,px runs appear only in Appendix~A, and one further 1024\,px
+evaluation is used deliberately in Section~5.5 to test whether the schedule effect
+is a train--test scale mismatch, which it is not.
+
+% ===========================================================================
+\section*{Reviewer \#5}
+
+\point{1. The authors acknowledge that the individual contribution of the
+per-input channel-wise gating \dots was not isolated due to hardware constraints
+\dots the authors should consider adding a lightweight theoretical justification
+or a highly scaled-down ablation \dots}
+
+\reply We took this suggestion and were able to run the full ablation rather than
+a scaled-down one, using a shortened progressive schedule and two seeds
+(Section~5.3.1, Table~7, Fig.~7). Gate type and dilation rates are crossed at a
+fixed parameter count. Neither ingredient beat a plain convolution of equal
+capacity, so the $+1.6\%$ attributed to MEIS cannot be assigned to either of the
+mechanisms that define it --- and under matched conditions with two seeds, the
+$+1.6\%$ itself does not replicate.
+
+\point{2. The cross-dataset evaluation on UAVDT focuses exclusively on the ``car''
+category \dots the authors should explicitly state in the abstract that
+``cross-domain generalization for small non-vehicle objects remains unvalidated.''}
+
+\reply Done, in those terms. The abstract now ends: ``UAVDT has only vehicle
+classes, so small non-vehicle generalization remains untested.''
+
+\point{3. The +10.2\% improvement over CF-YOLO is rightly noted as an upper bound
+\dots A brief theoretical discussion \dots estimating how much of the +12.8\%
+curriculum learning gain might transfer to CF-YOLO would strengthen this
+comparative analysis.}
+
+\reply The premise of the estimate no longer holds: the curriculum did not
+produce a gain. Trained at a matched epoch budget, the progressive schedule was
+3.3 to 4.2 points \emph{worse} than single-resolution training at the deployment
+size, on both detection heads and both seeds (Tables~4 and~5). The comparison
+against CF-YOLO has been removed together with the claim it supported, so there is
+no transfer estimate to make.
+
+\point{4. To strengthen the literature review \dots The authors are encouraged to
+review and integrate the following relevant frameworks: (a) UAV-DETR \dots (b)
+PADrone: Pre-Flight Abnormalities Detection on Drones Using Deep RF Sensing \dots
+(c) Multi-Sensor Fusion for UAV Classification Based on Feature Maps of Image and
+Radar Data.}
+
+\reply We have restructured Related Work around the four questions the study tests
+(Sections~2.1--2.4). On the specific suggestions: this manuscript studies
+single-sensor optical detection of objects in aerial images, and its measurements
+concern detection stride, training resolution and module placement. The RF-sensing
+and image--radar fusion works address a different sensing problem and a different
+task, drone classification and anomaly detection rather than object detection in
+imagery, so we could not connect them to a claim in the paper without padding the
+review. A recent UAV-oriented DETR belongs to the same task and would fit
+Section~2.1. \tbd[Authors: verify the UAV-DETR reference and add a sentence to
+Section~2.1 if it checks out; we have not cited it unverified.]
+
+% ===========================================================================
+\section*{Reviewer \#7}
+
+\point{1. The paper attributes the +17.6\% total gain to a combination of training
+and architecture, but the +12.8\% from progressive training is measured against a
+baseline that is not directly comparable. The architectural modules are only
+evaluated on top of progressive training, so their contribution is not isolated
+from the benefits of higher resolution inputs.}
+
+\reply This diagnosis was right, and following it changed the paper's conclusions.
+The revised design controls the training schedule explicitly: the progressive
+schedule and a single-phase schedule at 1280\,px are crossed with the three-level
+and four-level heads at a matched budget of up to 350 epochs (Table~5). With the
+comparison made fair, the progressive schedule loses by 3.3 to 4.2 points mAP@50.
+The modules are evaluated against Baseline-P2 under an identical schedule and
+identical inputs, and the $+17.6\%$ figure has been withdrawn.
+
+\point{2. The paper admits that FRM is ``a placement choice rather than a
+structural novelty'' \dots However, the paper still counts FRM as a distinct
+module contributing +1.3\%. This is a significant overstatement of novelty.}
+
+\reply Agreed and corrected. FRM is presented as CBAM applied after fusion, with
+no claim of novelty and no separate percentage attributed to it (Section~4.2). Its
+effect is measured only as part of the MEIS\,+\,FRM contrast, which is not
+significant on either seed.
+
+\point{3. \dots the +10.2\% gap ``represents an upper bound under unmatched
+training conditions.'' This comparison is misleading and should not be presented
+as a fair state-of-the-art comparison.}
+
+\reply Removed. See our response to Reviewer~\#4, point~3.
+
+\point{4. Curriculum learning through progressive resolution increase is a
+well-established technique \dots The paper presents this as a key innovation, but
+it is a standard training trick, not a methodological novelty.}
+
+\reply We no longer present it as an innovation. Section~2.3 places progressive
+resolution training in its literature, and the revised paper treats it as a factor
+to be tested rather than a contribution to be claimed --- a test it does not pass,
+since it underperforms single-resolution training at the deployment size under a
+matched epoch budget.
+
+\point{5. The paper reports a +25\% increase in GFLOPs \dots and a +28\% increase
+in parameters \dots the model is no longer ``lightweight'' compared to the
+baseline it improves upon.}
+
+\reply The cost is now reported without softening and measured more carefully than
+before (Table~2). Relative to YOLOv11s, the four-level head with MEIS and FRM
+carries 21\% more parameters, 2.1 times the operations and 3.5 times the inference
+time at 1280\,px. The word ``lightweight'' does not appear as a claim about our
+models.
+
+We also found that the batch-size-1 timing convention used in the original
+submission understated these costs badly. With one image per batch, two of the
+three models were limited by how fast the host could submit work, not by the GPU:
+their forward pass took the same time at 1280 and at 1536\,px. Read at face value,
+those numbers put the cost of the stride-4 level at 18\% when a GPU-bound
+measurement puts it at 89\%. Table~2 therefore reports both batch~1 and batch~8
+throughput and marks the host-bound cells.
+
+\point{6. The evaluation is performed only on the car category \dots The +1.8\% AP
+gain on large vehicles is not evidence of generalizable small-object detection.}
+
+\reply Agreed. See our response to Reviewer~\#4, point~4. The revised
+Section~5.6 reports the car result with sequence-level confidence intervals that
+include zero, names the classes UAVDT cannot test, and the abstract states that
+small non-vehicle generalization remains untested.
+
+\point{7. The paper reports a gap of 6x its uncertainty, but the uncertainty is
+derived from only three random seeds \dots A proper significance test (e.g., a
+paired t-test across all validation images) is not performed.}
+
+\reply Section~4.5 is new and describes the testing procedure: a paired bootstrap
+over the 548 validation images with 1000 resamples, a paired permutation test on
+the same pairing, Bonferroni correction across the ten classes, and sequence-level
+resampling for the video data of UAVDT. Every headline contrast is reported with
+its confidence interval, and Fig.~6 collects them in a forest plot.
+
+Section~5.4 addresses the seed question directly and separates the two sources of
+uncertainty. For the module comparison the paired difference moved from $+0.58$ to
+$-0.34$ points between seeds, a standard deviation of 0.65 points, against an
+image-level bootstrap standard error of 0.35 --- that is, the seed-to-seed spread
+was the larger of the two, and a single seed would have been misleading. The
+schedule effect is roughly ten times the seed spread and survives both tests. We
+recommend at least three seeds for effects below one point (Section~6.3), and we
+report that our own two seeds give only a rough estimate of that variance
+(Section~6.4).
+
+\point{8. The paper states that ``both models are evaluated at 1280$\times$1280
+resolution,'' but the baseline was only trained at 640px. This gives MEISCF an
+unfair advantage \dots}
+
+\reply Correct, and this comparison no longer exists. Every model in the revised
+manuscript is trained at its stated input size and evaluated at 1280 and
+1536\,px, and each schedule's final training resolution is 1280\,px, so no model
+is asked to generalize to an unseen resolution in the headline comparisons
+(Sections~4.3--4.4). The only deliberate train--test size mismatch is the 1024\,px
+evaluation in Section~5.5, which is used to test a specific hypothesis about the
+schedule effect and is labelled as such.
+
+\point{9. Table~2 shows ``YOLOv11 Baseline + Progressive Training'' achieving
+50.3\% mAP@50, but it is unclear if this model is trained for the same number of
+epochs (350) and with the same hyperparameters. A fair comparison would require a
+single-phase training at 1280px for the baseline.}
+
+\reply That experiment is now in the paper and is one of its central results.
+YOLOv11s was trained single-phase at 1280\,px under the same budget of up to 350
+epochs as its progressive counterpart, and it gained 3.28 points mAP@50 at
+1280\,px and 3.97 at 1536\,px over the progressive schedule (Table~5; 95\% CI
+$[3.3,\,4.6]$ at 1536\,px, $p<0.002$). Table~3 lists both schedules'
+hyperparameters side by side, including the one difference we could not avoid: the
+three- and four-level detectors needed different physical batch sizes to fit in
+memory, which we disclose in Table~3 and list as a limitation in Section~6.4. We
+also note there that this single-phase run stopped early at epoch 345 under a
+patience of 200, with its best checkpoint at epoch 145.
+
+\point{10. Learnable weighted fusion of multi-scale features has been explored in
+prior work, including EfficientDet's BiFPN and CF-YOLO. The paper's claim that
+``simultaneous three-level fusion'' is novel is weak.}
+
+\reply The claim has been withdrawn. See our response to Reviewer~\#4, point~2.
+
+\point{11. Dilated convolutions are typically used to increase receptive fields
+\dots but edge detection typically benefits from fine-grained, small-kernel
+convolutions. The paper does not explain why dilation rates of 1, 2, and 4 are
+optimal for extracting edge information.}
+
+\reply We could not explain it, and the experiment shows there was nothing to
+explain: replacing $(1,2,4)$ with $(1,1,1)$ at a fixed parameter count changes
+nothing measurable (Section~5.3.1, Table~7). The revised manuscript makes no
+optimality claim for the dilation rates and reports this null result instead. The
+reviewer's intuition about fine-grained kernels is consistent with what we
+measured, and with the sampling argument of Section~3: a module operating after
+downsampling cannot recover detail that the stride has already discarded.
+
+\point{12. The paper states that ``ablation confirms balanced weighting
+outperforms stronger emphasis,'' but it does not provide the ablation results.}
+
+\reply The sentence has been removed. The residual blend factor $\alpha$ sweep it
+referred to belongs to the earlier single-seed configuration and is now reported,
+with its actual numbers, in Appendix~A (Table~A.1), together with a statement of
+how that configuration differed from the main experiments.
+
+\point{13. The paper inconsistently reports performance at different resolutions
+\dots A fair comparison would report FPS at the same resolution as the evaluation.}
+
+\reply Table~2 now reports throughput at 1280 and 1536\,px, which are exactly the
+two resolutions at which every model is evaluated. As described in our response to
+point~5, we also changed how the measurement is made, because the batch-size-1
+convention was measuring the host rather than the model.
+
+\point{14. Reference [26] is cited as ``IEEE Access 10 (2022) 85744-85754,'' but
+this appears to be a placeholder or a citation of a different paper \dots}
+
+\reply The reference list was rebuilt for the revised manuscript and now contains
+28 entries, each cited at a specific claim in the text. The entry in question does
+not appear in it. \tbd[Authors: confirm every entry in references.bib against its
+primary source before submission.]
+
+\point{15. The paper states that ``68\% of objects occupy fewer than
+32$\times$32 pixels'' and that ``small object features experience 4.2x weaker
+activation magnitudes,'' but it does not show the analysis that led to these
+numbers.}
+
+\reply Both statements have been dealt with. The activation-magnitude claim was
+not supported by any analysis we could reconstruct, and it has been deleted.
+The size distribution is now derived rather than asserted. Section~3 gives a
+closed-form expression for the smallest object that can receive positive training
+samples at a given stride and input size, evaluates it in Table~1, and then
+measures the share of VisDrone objects falling below that threshold: at 640\,px,
+31.0\% of validation instances are smaller than one stride-8 cell and 5.8\%
+smaller than one stride-4 cell; at 1280\,px the same objects give 5.8\% and
+0.2\%. These numbers, not the earlier ones, are what the paper's predictions rest
+on, and Section~6.1 checks the predictions against the measured results.
+
+% ===========================================================================
+\section*{Closing}
+
+The reviewers asked us to isolate our components and to show that the gains
+exceeded the noise. We did both, and the answers went against the paper. We have
+reported them as we found them, removed the claims they do not support, and
+rebuilt the manuscript around the comparison that the evidence does support. We
+hope the result is useful, and we thank the reviewers for pushing the work to a
+place we would not have reached on our own.
+
+\bigskip
+
+Sincerely, on behalf of all authors,
 
 \bigskip\bigskip
 
-Moatassim Barakat \& Professor Xinzhong Zhu \\
+Professor Xinzhong Zhu, corresponding author \\
+Moatassim Barakat \\
 College of Computer Science and Technology \\
 Zhejiang Normal University, Jinhua 321004, China
 

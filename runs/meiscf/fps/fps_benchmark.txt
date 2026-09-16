@@ -1,0 +1,5 @@
+
+Throughput in images/s: median of the repeats, observed range in brackets
+model                  batch                img/s @320                img/s @480
+n                          1       116.7  [ 54.9, 121.0]        57.6  [ 51.8,  66.6]
+n                          2       209.9  [126.0, 231.8]       114.7  [101.4, 206.5]
