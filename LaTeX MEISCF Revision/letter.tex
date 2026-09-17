@@ -10,10 +10,6 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, urlcolor=blue, linkcolor=black}
 
-% Pending items are marked with \tbd[...] and print in red. Search for "\tbd"
-% before submitting.
-\newcommand{\tbd}[1][TBD]{\textcolor{red}{\textbf{[#1]}}}
-
 % A reviewer comment, followed by our reply.
 \newcommand{\point}[1]{\medskip\noindent\textit{#1}\par}
 \newcommand{\reply}{\textbf{Response.}\ }
@@ -167,7 +163,7 @@ same progressive training schedule.}
 we expected: the schedule dominates, and it dominates in the opposite direction.
 Single-phase training at 1280\,px beat the four-phase progressive schedule by
 3.94 points mAP@50 with seed 0 and 4.16 with seed 42, with and without the
-stride-4 level (Table~4, Table~5; paired bootstrap 95\% CI $[4.11,\,5.49]$ at
+stride-4 level (Table~4, Table~5; paired bootstrap 95\% CI $[4.1,\,5.5]$ at
 1536\,px, $p<0.002$, permutation $p=0.001$). At matched training compute the
 single-phase run was 3.87 points ahead (Section~5.1, Fig.~4).
 
@@ -254,16 +250,21 @@ report a partial version of it.
 lightweight Transformer-based object detectors as well as the latest YOLO variants
 specifically designed for aerial imagery.}
 
-\reply We have not added new detector families, for a reason that is central to
-the paper: adding architectures without matched schedules, matched input sizes,
-matched epoch budgets and paired tests would reproduce exactly the problem the
-paper documents. Our experiments show that a schedule change alone moves mAP@50 by
-about 4 points, which is larger than the margin most such comparisons report, so a
-table of detectors trained under their own recipes cannot separate architecture
-from protocol. Section~5.7 therefore reports published numbers with their
-protocols attached and explicitly declines to rank them, and Section~6.4 lists the
-narrow architectural scope --- one detector family, one backbone scale --- as a
-limitation of this study.
+\reply Section~2.1 now discusses a recent detection transformer for this task,
+UAV-DETR (Zhang et al., arXiv:2501.01855), alongside the aerial YOLO variants, and
+Section~2.4 was added to review how this literature handles run-to-run variance.
+
+We did not, however, add new detector families to the experiments, for a reason
+that is central to the paper: comparing architectures without matched schedules,
+matched input sizes, matched epoch budgets and paired tests would reproduce
+exactly the problem the paper documents. A schedule change alone moves mAP@50 by
+about 4 points in our measurements, which is of the same order as the gains those
+detectors report over their own baselines --- UAV-DETR reports $+4.2$ points AP@50
+on VisDrone --- so a table of detectors trained under their own recipes cannot
+separate architecture from protocol. Section~5.7 therefore reports published
+numbers with their protocols attached and explicitly declines to rank them, and
+Section~6.4 lists the narrow architectural scope --- one detector family, one
+backbone scale --- as a limitation of this study.
 
 % ===========================================================================
 \section*{Reviewer \#2}
@@ -330,9 +331,16 @@ et al. Applied Soft Computing, 2026, 203: 116069.}
 \reply Related Work is now organized by the four questions the study tests rather
 than by method family, and each entry is discussed in terms of the evidence it
 provides (Sections~2.1--2.4). The reference list was rebuilt for the new
-manuscript and superseded entries were removed. \tbd[Authors: check the suggested
-Applied Soft Computing paper and add it to Section~2.1 or~2.2 if it bears on
-these questions; do not cite it unverified.]
+manuscript, superseded entries were removed, and the author lists and page ranges
+of the remaining entries were checked against the publishers' records.
+
+We were not able to locate the suggested Applied Soft Computing article from the
+details given, and the work we could find under that author name concerns plant
+disease identification and image watermarking rather than object detection in
+aerial imagery. We would gladly add it if the reviewer can supply the title, and
+we would equally welcome pointers to work that bears on the four questions above
+--- particularly any aerial-detection study that reports run-to-run variance,
+since Section~2.4 had to draw most of its evidence from outside this literature.
 
 \point{Can quantum computing be helpful to solve this problem? NR Zhou, et al.
 \dots Gong LH, et al. \dots}
@@ -415,8 +423,9 @@ conditions, MEIS with FRM changed mAP@50 by $+0.58$ points with seed 0 and
 $-0.34$ with seed 42 at 1536\,px, with paired bootstrap intervals of
 $[-0.15,\,1.27]$ and $[-1.00,\,0.33]$ and permutation tests that agree
 (Section~5.3, Table~6, Fig.~6). Even on the favourable seed the interval excludes
-improvements larger than about 1.3 points. Split by object size, the two-seed mean
-change on COCO-small is $-0.80$ points, 95\% CI $[-1.50,\,-0.07]$ (Table~8).
+improvements larger than about 1.3 points. Split by object size, COCO small
+objects lost 0.8 points averaged over the two seeds, 95\% CI $[-1.5,\,-0.1]$
+(Section~5.5).
 
 \point{2. The authors claim to ``simultaneously integrate P3/P4/P5,'' but in fact
 only the P4 level achieves three-layer fusion \dots Moreover, learnable scalar
@@ -450,9 +459,10 @@ for small non-vehicle objects remains untested. The rebuilt evaluation
 (Section~5.6) reports what the benchmark can and cannot support: cars reproduce
 the VisDrone ordering but no sequence-level interval excludes zero; trucks appear
 in six of eleven sequences with 62\% of them in one, and buses in four sequences
-with 62\% in one, so neither class can carry a conclusion; and UAVDT's objects are
+with 62\% in one, so neither class can carry a conclusion. UAVDT's objects are also
 larger, with 30.7\% of instances below 32 pixels against 68.6\% on the VisDrone
-validation set, so the two benchmarks do not probe the same size regime.
+validation set (Section~4.1), so the two benchmarks do not probe the same size
+regime.
 
 \point{5. Table~1 and Table~3 appear to be redundant \dots However, the reported
 metrics for the same methods are inconsistent across the two tables. Why?}
@@ -521,15 +531,30 @@ PADrone: Pre-Flight Abnormalities Detection on Drones Using Deep RF Sensing \dot
 Radar Data.}
 
 \reply We have restructured Related Work around the four questions the study tests
-(Sections~2.1--2.4). On the specific suggestions: this manuscript studies
-single-sensor optical detection of objects in aerial images, and its measurements
-concern detection stride, training resolution and module placement. The RF-sensing
-and image--radar fusion works address a different sensing problem and a different
-task, drone classification and anomaly detection rather than object detection in
-imagery, so we could not connect them to a claim in the paper without padding the
-review. A recent UAV-oriented DETR belongs to the same task and would fit
-Section~2.1. \tbd[Authors: verify the UAV-DETR reference and add a sentence to
-Section~2.1 if it checks out; we have not cited it unverified.]
+(Sections~2.1--2.4), and we have added a detection transformer to Section~2.1,
+which also answers Reviewer~\#1's request for a recent Transformer-based
+detector.
+
+One clarification on suggestion~(a). Two different papers share the name
+UAV-DETR. The one at the identifier given, arXiv:2603.22841, is
+\textit{UAV-DETR: DETR for Anti-Drone Target Detection}, which detects drones as
+targets --- a different task from ours, where the camera is on the drone and the
+targets are small ground objects. The one that shares our task and our benchmark
+is Zhang et al., \textit{UAV-DETR: Efficient End-to-End Object Detection for
+Unmanned Aerial Vehicle Imagery} (arXiv:2501.01855), which adds frequency-domain
+feature fusion, detail-preserving downsampling and semantic alignment to RT-DETR
+and reports $+4.2$ points AP@50 on VisDrone. We cite that one, and we use it to
+make a point the study depends on: its reported gain is of the same order as the
+effect we measure from the training schedule alone, which is why we compare
+factors rather than architectures.
+
+On suggestions~(b) and~(c): this manuscript studies single-sensor optical
+detection of objects in aerial images, and its measurements concern detection
+stride, training resolution and module placement. The RF-sensing and image--radar
+fusion works address a different sensing modality and a different task, drone
+classification and pre-flight anomaly detection rather than detection of objects
+within an image, so we could not connect them to a claim in the paper without
+padding the review.
 
 % ===========================================================================
 \section*{Reviewer \#7}
@@ -685,10 +710,14 @@ convention was measuring the host rather than the model.
 \point{14. Reference [26] is cited as ``IEEE Access 10 (2022) 85744-85754,'' but
 this appears to be a placeholder or a citation of a different paper \dots}
 
-\reply The reference list was rebuilt for the revised manuscript and now contains
-28 entries, each cited at a specific claim in the text. The entry in question does
-not appear in it. \tbd[Authors: confirm every entry in references.bib against its
-primary source before submission.]
+\reply The reviewer was right that the entry could not be verified. We were unable
+to locate it either, and it has been replaced by the paper that actually defines
+the MEIS block, Liu et al., \textit{Intelligent and Converged Networks} 6(2),
+2025, which is now the reference wherever MEIS-YOLO is discussed. The reference
+list was rebuilt for the revised manuscript and contains 30 entries, each cited at
+a specific claim in the text. We also checked the author lists and page ranges of
+the entries added in revision against the publishers' records, and completed two
+that had been abbreviated.
 
 \point{15. The paper states that ``68\% of objects occupy fewer than
 32$\times$32 pixels'' and that ``small object features experience 4.2x weaker
